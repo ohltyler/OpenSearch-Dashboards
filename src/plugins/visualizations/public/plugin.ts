@@ -71,6 +71,7 @@ import {
 import { ExpressionsSetup, ExpressionsStart } from '../../expressions/public';
 import { EmbeddableSetup, EmbeddableStart } from '../../embeddable/public';
 import { visualization as visualizationFunction } from './expressions/visualization_function';
+import { visualizationAnomalyDetectionFunction } from './expressions/anomaly_detection_function';
 import { visualization as visualizationRenderer } from './expressions/visualization_renderer';
 import { range as rangeExpressionFunction } from './expression_functions/range';
 import { visDimension as visDimensionExpressionFunction } from './expression_functions/vis_dimension';
@@ -163,6 +164,7 @@ export class VisualizationsPlugin
     setUsageCollector(usageCollection);
 
     expressions.registerFunction(visualizationFunction);
+    expressions.registerFunction(visualizationAnomalyDetectionFunction);
     expressions.registerRenderer(visualizationRenderer);
     expressions.registerFunction(rangeExpressionFunction);
     expressions.registerFunction(visDimensionExpressionFunction);

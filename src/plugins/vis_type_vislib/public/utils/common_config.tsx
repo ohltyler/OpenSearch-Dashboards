@@ -34,7 +34,11 @@ import React from 'react';
 import { i18n } from '@osd/i18n';
 
 import { VisOptionsProps } from 'src/plugins/vis_default_editor/public';
-import { PointSeriesOptions, MetricsAxisOptions } from '../components/options';
+import {
+  PointSeriesOptions,
+  MetricsAxisOptions,
+  AnomalyDetectionOptions,
+} from '../components/options';
 import { ValidationWrapper } from '../components/common';
 import { BasicVislibParams } from '../types';
 
@@ -56,6 +60,15 @@ function getAreaOptionTabs() {
       }),
       editor: (props: VisOptionsProps<BasicVislibParams>) => (
         <ValidationWrapper {...props} component={PointSeriesOptions} />
+      ),
+    },
+    {
+      name: 'anomaly detection',
+      title: i18n.translate('visTypeVislib.area.tabs.anomalyDetectionTitle', {
+        defaultMessage: 'Anomaly detection',
+      }),
+      editor: (props: VisOptionsProps<BasicVislibParams>) => (
+        <ValidationWrapper {...props} component={AnomalyDetectionOptions} />
       ),
     },
   ];

@@ -107,4 +107,7 @@ export interface BasicVislibParams extends CommonVislibParams {
   seriesParams: SeriesParam[];
   times: TimeMarker[];
   type: string;
+  enableAnomalyDetection: boolean;
+  showAnomalies: boolean;
+  detectorId: string;
 }

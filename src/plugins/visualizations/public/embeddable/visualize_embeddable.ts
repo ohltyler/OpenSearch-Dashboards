@@ -395,7 +395,6 @@ export class VisualizeEmbeddable
     }
     this.abortController = new AbortController();
     const abortController = this.abortController;
-    console.log('updateHandler() - enable AD: ', this.vis.params?.enableAnomalyDetection);
     this.expression = await buildPipeline(this.vis, {
       timefilter: this.timefilter,
       timeRange: this.timeRange,

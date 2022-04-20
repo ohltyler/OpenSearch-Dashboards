@@ -62,6 +62,7 @@ import {
   setOverlays,
   setSavedSearchLoader,
   setEmbeddable,
+  setAnomalyDetectionService,
 } from './services';
 import {
   VISUALIZE_EMBEDDABLE_TYPE,
@@ -95,6 +96,7 @@ import {
 } from './saved_visualizations/_saved_vis';
 import { createSavedSearchesLoader } from '../../discover/public';
 import { DashboardStart } from '../../dashboard/public';
+import { AnomalyDetectionService, AnomalyDetectionApiClient } from './anomaly_detection';
 
 /**
  * Interface for this plugin's returned setup/start contracts.
@@ -214,6 +216,10 @@ export class VisualizationsPlugin
       overlays: core.overlays,
     });
     setSavedSearchLoader(savedSearchLoader);
+    const anomalyDetectionService = new AnomalyDetectionService({
+      apiClient: new AnomalyDetectionApiClient(core.http),
+    });
+    setAnomalyDetectionService(anomalyDetectionService);
     return {
       ...types,
       showNewVisModal,

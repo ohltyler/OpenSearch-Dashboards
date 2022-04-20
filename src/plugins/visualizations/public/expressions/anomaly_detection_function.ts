@@ -57,12 +57,13 @@ import {
 } from '../../../data/common';
 
 import { FilterManager } from '../../../data/public/query';
-import {
-  getFieldFormats,
-  getIndexPatterns,
-  getQueryService,
-  getSearchService,
-} from '../../../data/public/services';
+import { getAnomalyDetectionService } from '../services';
+// import {
+//   getFieldFormats,
+//   getIndexPatterns,
+//   getQueryService,
+//   getSearchService,
+// } from '../../../data/public/services';
 // import { buildTabularInspectorData } from './build_tabular_inspector_data';
 // import { serializeAggConfig } from './utils';
 
@@ -85,9 +86,6 @@ export interface RequestHandlerParams {
 
 interface Arguments {
   index: string;
-  // metricsAtAllLevels: boolean;
-  // partialRows: boolean;
-  // includeFormatHints: boolean;
   aggConfigs: string;
   visConfig: string;
   timeFields?: string[];
@@ -242,6 +240,21 @@ const handleCourierRequest = async ({
   return (searchSource as any).tabifiedResponse;
 };
 
+const handleAnomalyDetectorRequest = async (args: Arguments) => {
+  //   const visConfig = JSON.parse(args.visConfig);
+  //   const indexPatterns = getIndexPatterns();
+  //   //const { filterManager } = getQueryService();
+  //   const searchService = getSearchService();
+  //   const aggConfigsState = JSON.parse(args.aggConfigs);
+  //   const indexPattern = await indexPatterns.get(args.index);
+  //   const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigsState);
+  // TODO: add logic to parse the vis config and the aggs to build an AD creation request
+  // <field parsing here>
+  // Make the request
+  const response = await getAnomalyDetectionService().getDetector('ZpjY-38BAw1nCA43DbP4');
+  console.log('response: ', response);
+};
+
 export type ExpressionFunctionVisualizationAnomalyDetection = ExpressionFunctionDefinition<
   'anomaly_detection',
   Input,
@@ -261,21 +274,6 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
       types: ['string'],
       help: '',
     },
-    // metricsAtAllLevels: {
-    //   types: ['boolean'],
-    //   default: false,
-    //   help: '',
-    // },
-    // partialRows: {
-    //   types: ['boolean'],
-    //   default: false,
-    //   help: '',
-    // },
-    // includeFormatHints: {
-    //   types: ['boolean'],
-    //   default: false,
-    //   help: '',
-    // },
     aggConfigs: {
       types: ['string'],
       default: '""',
@@ -294,6 +292,25 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
   },
   async fn(table, args, { inspectorAdapters, abortSignal }) {
     console.log('running AD expression fn');
+    const visConfigParams = JSON.parse(args.visConfig);
+
+    // if AD enabled and no detector ID: create a new detector via detector creation expression fn
+    if (visConfigParams.enableAnomalyDetection && !visConfigParams.detectorId) {
+      console.log('ad enabled - creating new detector via expression');
+
+      //   // Set basic search source info here
+      //   const indexPatterns = getIndexPatterns();
+      //   const searchService = getSearchService();
+      //   const indexPattern = await indexPatterns.get(args.index);
+      //   const searchSource = await searchService.searchSource.create();
+
+      //   searchSource.setField('index', indexPattern);
+      //   searchSource.setField('size', 0);
+
+      const response = await handleAnomalyDetectorRequest(args);
+    } else {
+      console.log('ad disabled');
+    }
     // const indexPatterns = getIndexPatterns();
     // const { filterManager } = getQueryService();
     // const searchService = getSearchService();

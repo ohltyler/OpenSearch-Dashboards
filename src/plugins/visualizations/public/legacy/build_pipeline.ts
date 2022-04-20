@@ -431,21 +431,16 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
     ${prepareJson('aggConfigs', vis.data.aggs!.aggs)} | `;
     }
 
-    // if AD enabled and no detector ID: create a new detector via detector creation expression fn
-    if (vis.params.enableAnomalyDetection && !vis.params.detectorId) {
-      console.log('ad enabled - creating new detector via expression');
-      const visConfig = { ...vis.params };
-
-      // TODO: args to anomaly_detection fn below are copied from other places in this class, that's only
-      // applicable under certain conditions. Need to understand all of the different scenarios to know
-      // when to add AD code.
-      visConfig.dimensions = await buildVislibDimensions(vis, params);
-      pipeline += `anomaly_detection 
+    // add the AD function. Note nothing will happen if enableAnomalyDetection is false - that is
+    // handled in the function itself
+    // TODO: args to anomaly_detection fn below are copied from other places in this class, that's only
+    // applicable under certain conditions. Need to understand all of the different scenarios to know
+    // when to add AD code.
+    // visConfig.dimensions = await buildVislibDimensions(vis, params);
+    const visConfig = { ...vis.params };
+    pipeline += `anomaly_detection 
       ${prepareString('index', indexPattern!.id)} 
       ${prepareJson('aggConfigs', vis.data.aggs!.aggs)} ${prepareJson('visConfig', visConfig)} | `;
-    } else {
-      console.log('ad disabled');
-    }
 
     const schemas = getSchemas(vis, params);
 
@@ -456,7 +451,6 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
         uiState
       );
     } else if (vislibCharts.includes(vis.type.name)) {
-      console.log('in this branch');
       const visConfig = { ...vis.params };
       visConfig.dimensions = await buildVislibDimensions(vis, params);
       pipeline += `vislib type='${vis.type.name}' ${prepareJson('visConfig', visConfig)}`;
@@ -476,7 +470,7 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
     }
   }
 
-  console.log('final constructed pipeline: ', pipeline);
+  //console.log('final constructed pipeline: ', pipeline);
 
   return pipeline;
 };

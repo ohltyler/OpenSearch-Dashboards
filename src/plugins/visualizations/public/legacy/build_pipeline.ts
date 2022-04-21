@@ -439,6 +439,7 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
     // visConfig.dimensions = await buildVislibDimensions(vis, params);
     const visConfig = { ...vis.params };
     pipeline += `anomaly_detection 
+      ${prepareString('title', vis.title)} 
       ${prepareString('index', indexPattern!.id)} 
       ${prepareJson('aggConfigs', vis.data.aggs!.aggs)} ${prepareJson('visConfig', visConfig)} | `;
 

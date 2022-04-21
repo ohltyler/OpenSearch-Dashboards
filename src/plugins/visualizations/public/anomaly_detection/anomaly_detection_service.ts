@@ -30,7 +30,7 @@
  * GitHub history for details.
  */
 
-import { IAnomalyDetectionApiClient } from './types';
+import { IAnomalyDetectionApiClient, Detector } from './types';
 
 interface AnomalyDetectionServiceDeps {
   apiClient: IAnomalyDetectionApiClient;
@@ -49,6 +49,14 @@ export class AnomalyDetectionService {
   getDetector = async (detectorId: string) => {
     // call using configured API client
     return this.apiClient.getDetector(detectorId);
+  };
+
+  /**
+   * Create detector
+   */
+  createDetector = async (detector: Detector) => {
+    // call using configured API client
+    return this.apiClient.createDetector(detector);
   };
 }
 

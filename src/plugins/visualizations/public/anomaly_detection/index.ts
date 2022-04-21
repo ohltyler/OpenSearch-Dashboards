@@ -32,4 +32,4 @@
 
 export { AnomalyDetectionApiClient } from './anomaly_detection_api_client';
 export { AnomalyDetectionService, AnomalyDetectionContract } from './anomaly_detection_service';
-export { IAnomalyDetectionApiClient } from './types';
+export { IAnomalyDetectionApiClient, Detector } from './types';

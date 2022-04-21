@@ -30,17 +30,36 @@
  * GitHub history for details.
  */
 
-// TODO: need to figure out the best way to import these data models/interfaces. The path changes depending on
-// a dev env or bundled zip env (anomaly-detection-dashboards in dev vs. anomalyDetectionDashboards in bundle)
-// May need to redefine some AD data models here (in core). Downside is it requires more maintenance if there is model changes.
-// In addition, this import requires 'anomalyDetectionDashboards' to be listed as a required plugin in visualizations plugin
-// (see visualizations/opensearch_dashboards.json)
-import { Detector } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
-export { Detector } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
+import { IIndexPattern } from '../../../../data/common';
 
-export const API_BASE_URL: string = `/api/anomaly_detectors`;
+export const constructDetectorNameFromVis = (visTitle: string) => {
+  return visTitle.toLowerCase().replace(/\s/g, '-') + '-detector';
+};
 
-export interface IAnomalyDetectionApiClient {
-  getDetector: (detectorId: string) => Promise<any>;
-  createDetector: (detector: Detector) => Promise<any>;
-}
+export const constructDetectorDescriptionFromVis = (visTitle: string) => {
+  return `Anomaly detector based off of the visualization: '${visTitle}'`;
+};
+
+// TODO: figure out proper error handling in here. Right now just printing log lines
+export const constructDetectorTimeFieldFromVis = (
+  timeFields: string[] | undefined,
+  indexPattern: IIndexPattern
+): string => {
+  let timeField = undefined as string | undefined;
+  if (timeFields && timeFields.length > 0) {
+    if (timeFields.length > 1) {
+      console.log('too many timefields - only one can be specified');
+    } else {
+      timeField = timeFields[0];
+    }
+  } else {
+    timeField = indexPattern !== undefined ? indexPattern.getTimeField?.()?.name : '';
+  }
+
+  if (timeField === undefined || timeField.length === 0) {
+    console.log('no valid time fields found');
+    return '';
+  }
+
+  return timeField;
+};

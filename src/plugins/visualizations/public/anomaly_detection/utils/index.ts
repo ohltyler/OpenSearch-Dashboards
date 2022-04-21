@@ -30,17 +30,4 @@
  * GitHub history for details.
  */
 
-// TODO: need to figure out the best way to import these data models/interfaces. The path changes depending on
-// a dev env or bundled zip env (anomaly-detection-dashboards in dev vs. anomalyDetectionDashboards in bundle)
-// May need to redefine some AD data models here (in core). Downside is it requires more maintenance if there is model changes.
-// In addition, this import requires 'anomalyDetectionDashboards' to be listed as a required plugin in visualizations plugin
-// (see visualizations/opensearch_dashboards.json)
-import { Detector } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
-export { Detector } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
-
-export const API_BASE_URL: string = `/api/anomaly_detectors`;
-
-export interface IAnomalyDetectionApiClient {
-  getDetector: (detectorId: string) => Promise<any>;
-  createDetector: (detector: Detector) => Promise<any>;
-}
+export * from './helpers';

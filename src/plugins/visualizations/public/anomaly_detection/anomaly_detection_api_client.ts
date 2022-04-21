@@ -31,9 +31,7 @@
  */
 
 import { HttpSetup } from 'src/core/public';
-import { IAnomalyDetectionApiClient } from './types';
-
-const API_BASE_URL: string = `/api/anomaly_detectors`;
+import { IAnomalyDetectionApiClient, API_BASE_URL, Detector } from './types';
 
 export class AnomalyDetectionApiClient implements IAnomalyDetectionApiClient {
   private http: HttpSetup;
@@ -42,13 +40,13 @@ export class AnomalyDetectionApiClient implements IAnomalyDetectionApiClient {
     this.http = http;
   }
 
-  // TODO: make this generic to handle more than just GET
-  private makeRequest = (path: string, request: any) => {
+  getDetector = (detectorId: string): Promise<any> => {
+    const path = `${API_BASE_URL}/detectors/${detectorId}`;
     return this.http.get(path);
   };
 
-  getDetector = (detectorId: string): Promise<any> => {
-    const path = `${API_BASE_URL}/detectors/${detectorId}`;
-    return this.makeRequest(path, undefined);
+  createDetector = (detector: Detector): Promise<any> => {
+    const path = `${API_BASE_URL}/detectors`;
+    return this.http.post(path, { body: JSON.stringify(detector) });
   };
 }

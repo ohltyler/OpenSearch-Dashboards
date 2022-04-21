@@ -37,54 +37,43 @@ import {
   OpenSearchDashboardsDatatableColumn,
   ExpressionFunctionDefinition,
 } from 'src/plugins/expressions/public';
-import { PersistedState } from '../../public';
-import { Adapters } from '../../../inspector';
+// import { PersistedState } from '../../public';
+// import { Adapters } from '../../../inspector';
+
+// import {
+//   calculateBounds,
+//   OpenSearchaggsExpressionFunctionDefinition,
+//   Filter,
+//   getTime,
+//   IIndexPattern,
+//   isRangeFilter,
+//   Query,
+//   TimeRange,
+//   getRequestInspectorStats,
+//   getResponseInspectorStats,
+//   IAggConfigs,
+//   ISearchSource,
+//   tabifyAggResponse,
+// } from '../../../data/common';
+// import { FilterManager } from '../../../data/public/query';
+
+import { Detector } from '../anomaly_detection';
+import {
+  constructDetectorNameFromVis,
+  constructDetectorDescriptionFromVis,
+  constructDetectorTimeFieldFromVis,
+} from '../anomaly_detection/utils';
 
 import {
-  calculateBounds,
-  OpenSearchaggsExpressionFunctionDefinition,
-  Filter,
-  getTime,
-  IIndexPattern,
-  isRangeFilter,
-  Query,
-  TimeRange,
-  getRequestInspectorStats,
-  getResponseInspectorStats,
-  IAggConfigs,
-  ISearchSource,
-  tabifyAggResponse,
-} from '../../../data/common';
-
-import { FilterManager } from '../../../data/public/query';
-import { getAnomalyDetectionService } from '../services';
-// import {
-//   getFieldFormats,
-//   getIndexPatterns,
-//   getQueryService,
-//   getSearchService,
-// } from '../../../data/public/services';
-// import { buildTabularInspectorData } from './build_tabular_inspector_data';
-// import { serializeAggConfig } from './utils';
-
-export interface RequestHandlerParams {
-  searchSource: ISearchSource;
-  aggs: IAggConfigs;
-  timeRange?: TimeRange;
-  timeFields?: string[];
-  indexPattern?: IIndexPattern;
-  query?: Query;
-  filters?: Filter[];
-  filterManager: FilterManager;
-  uiState?: PersistedState;
-  partialRows?: boolean;
-  inspectorAdapters: Adapters;
-  metricsAtAllLevels?: boolean;
-  visParams?: any;
-  abortSignal?: AbortSignal;
-}
+  getTypes,
+  getIndexPatterns,
+  getFilterManager,
+  getSearch,
+  getAnomalyDetectionService,
+} from '../services';
 
 interface Arguments {
+  title: string;
   index: string;
   aggConfigs: string;
   visConfig: string;
@@ -96,163 +85,34 @@ type Output = Promise<OpenSearchDashboardsDatatable>;
 
 const name = 'anomaly_detection';
 
-const handleCourierRequest = async ({
-  searchSource,
-  aggs,
-  timeRange,
-  timeFields,
-  indexPattern,
-  query,
-  filters,
-  partialRows,
-  metricsAtAllLevels,
-  inspectorAdapters,
-  filterManager,
-  abortSignal,
-}: RequestHandlerParams) => {
-  // Create a new search source that inherits the original search source
-  // but has the appropriate timeRange applied via a filter.
-  // This is a temporary solution until we properly pass down all required
-  // information for the request to the request handler (https://github.com/elastic/kibana/issues/16641).
-  // Using callParentStartHandlers: true we make sure, that the parent searchSource
-  // onSearchRequestStart will be called properly even though we use an inherited
-  // search source.
-  const timeFilterSearchSource = searchSource.createChild({ callParentStartHandlers: true });
-  const requestSearchSource = timeFilterSearchSource.createChild({ callParentStartHandlers: true });
-
-  aggs.setTimeRange(timeRange as TimeRange);
-
-  // For now we need to mirror the history of the passed search source, since
-  // the request inspector wouldn't work otherwise.
-  Object.defineProperty(requestSearchSource, 'history', {
-    get() {
-      return searchSource.history;
-    },
-    set(history) {
-      return (searchSource.history = history);
-    },
-  });
-
-  requestSearchSource.setField('aggs', function () {
-    return aggs.toDsl(metricsAtAllLevels);
-  });
-
-  requestSearchSource.onRequestStart((paramSearchSource, options) => {
-    return aggs.onSearchRequestStart(paramSearchSource, options);
-  });
-
-  // If timeFields have been specified, use the specified ones, otherwise use primary time field of index
-  // pattern if it's available.
-  const defaultTimeField = indexPattern?.getTimeField?.();
-  const defaultTimeFields = defaultTimeField ? [defaultTimeField.name] : [];
-  const allTimeFields = timeFields && timeFields.length > 0 ? timeFields : defaultTimeFields;
-
-  // If a timeRange has been specified and we had at least one timeField available, create range
-  // filters for that those time fields
-  if (timeRange && allTimeFields.length > 0) {
-    timeFilterSearchSource.setField('filter', () => {
-      return allTimeFields
-        .map((fieldName) => getTime(indexPattern, timeRange, { fieldName }))
-        .filter(isRangeFilter);
-    });
-  }
-
-  requestSearchSource.setField('filter', filters);
-  requestSearchSource.setField('query', query);
-
-  inspectorAdapters.requests.reset();
-  const request = inspectorAdapters.requests.start(
-    i18n.translate('data.functions.opensearchaggs.inspector.dataRequest.title', {
-      defaultMessage: 'Data',
-    }),
-    {
-      description: i18n.translate(
-        'data.functions.opensearchaggs.inspector.dataRequest.description',
-        {
-          defaultMessage:
-            'This request queries OpenSearch to fetch the data for the visualization.',
-        }
-      ),
-    }
-  );
-  request.stats(getRequestInspectorStats(requestSearchSource));
-
-  try {
-    const response = await requestSearchSource.fetch({ abortSignal });
-
-    request.stats(getResponseInspectorStats(response, searchSource)).ok({ json: response });
-
-    (searchSource as any).rawResponse = response;
-  } catch (e) {
-    // Log any error during request to the inspector
-    request.error({ json: e });
-    throw e;
-  } finally {
-    // Add the request body no matter if things went fine or not
-    requestSearchSource.getSearchRequestBody().then((req: unknown) => {
-      request.json(req);
-    });
-  }
-
-  // Note that rawResponse is not deeply cloned here, so downstream applications using courier
-  // must take care not to mutate it, or it could have unintended side effects, e.g. displaying
-  // response data incorrectly in the inspector.
-  let resp = (searchSource as any).rawResponse;
-  for (const agg of aggs.aggs) {
-    if (hasIn(agg, 'type.postFlightRequest')) {
-      resp = await agg.type.postFlightRequest(
-        resp,
-        aggs,
-        agg,
-        requestSearchSource,
-        inspectorAdapters.requests,
-        abortSignal
-      );
-    }
-  }
-
-  (searchSource as any).finalResponse = resp;
-
-  const parsedTimeRange = timeRange ? calculateBounds(timeRange) : null;
-  const tabifyParams = {
-    metricsAtAllLevels,
-    partialRows,
-    timeRange: parsedTimeRange
-      ? { from: parsedTimeRange.min, to: parsedTimeRange.max, timeFields: allTimeFields }
-      : undefined,
-  };
-
-  (searchSource as any).tabifiedResponse = tabifyAggResponse(
-    aggs,
-    (searchSource as any).finalResponse,
-    tabifyParams
-  );
-
-  //   inspectorAdapters.data.setTabularLoader(
-  //     () =>
-  //       buildTabularInspectorData((searchSource as any).tabifiedResponse, {
-  //         queryFilter: filterManager,
-  //         deserializeFieldFormat: getFieldFormats().deserialize,
-  //       }),
-  //     { returnsFormattedValues: true }
-  //   );
-
-  return (searchSource as any).tabifiedResponse;
-};
-
 const handleAnomalyDetectorRequest = async (args: Arguments) => {
-  //   const visConfig = JSON.parse(args.visConfig);
-  //   const indexPatterns = getIndexPatterns();
-  //   //const { filterManager } = getQueryService();
-  //   const searchService = getSearchService();
-  //   const aggConfigsState = JSON.parse(args.aggConfigs);
-  //   const indexPattern = await indexPatterns.get(args.index);
-  //   const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigsState);
+  console.log('in handleAnomalyDetectorRequest');
+  const testGetDetectorResponse = await getAnomalyDetectionService().getDetector(
+    'ZpjY-38BAw1nCA43DbP4'
+  );
+  console.log('TEST - get detector response: ', testGetDetectorResponse);
+
+  const visConfig = JSON.parse(args.visConfig);
+  const indexPatterns = getIndexPatterns();
+  //const { filterManager } = getQueryService();
+  const searchService = getSearch();
+  const aggConfigsState = JSON.parse(args.aggConfigs);
+  const indexPattern = await indexPatterns.get(args.index);
+  const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigsState);
+
+  console.log('visConfig: ', visConfig);
+  console.log('indexPattern: ', indexPattern);
+  console.log('aggs: ', aggs);
+
   // TODO: add logic to parse the vis config and the aggs to build an AD creation request
-  // <field parsing here>
+  let detector = {} as Detector;
+  detector.name = constructDetectorNameFromVis(args.title);
+  detector.description = constructDetectorDescriptionFromVis(args.title);
+  detector.timeField = constructDetectorTimeFieldFromVis(args.timeFields, indexPattern);
+
+  console.log('detector to create (so far): ', detector);
+
   // Make the request
-  const response = await getAnomalyDetectionService().getDetector('ZpjY-38BAw1nCA43DbP4');
-  console.log('response: ', response);
 };
 
 export type ExpressionFunctionVisualizationAnomalyDetection = ExpressionFunctionDefinition<
@@ -270,6 +130,10 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
     defaultMessage: 'Create an anomaly detector from a visualization',
   }),
   args: {
+    title: {
+      types: ['string'],
+      help: '',
+    },
     index: {
       types: ['string'],
       help: '',

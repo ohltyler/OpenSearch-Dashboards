@@ -40,21 +40,7 @@ import {
 // import { PersistedState } from '../../public';
 // import { Adapters } from '../../../inspector';
 
-// import {
-//   calculateBounds,
-//   OpenSearchaggsExpressionFunctionDefinition,
-//   Filter,
-//   getTime,
-//   IIndexPattern,
-//   isRangeFilter,
-//   Query,
-//   TimeRange,
-//   getRequestInspectorStats,
-//   getResponseInspectorStats,
-//   IAggConfigs,
-//   ISearchSource,
-//   tabifyAggResponse,
-// } from '../../../data/common';
+import { Filter, Query } from '../../../data/common';
 // import { FilterManager } from '../../../data/public/query';
 
 import { Detector } from '../anomaly_detection';
@@ -62,6 +48,9 @@ import {
   constructDetectorNameFromVis,
   constructDetectorDescriptionFromVis,
   constructDetectorTimeFieldFromVis,
+  constructDetectorIndexFromIndexPattern,
+  constructDetectorFeatureAttributesFromVis,
+  constructDetectorFilterQueryFromVis,
 } from '../anomaly_detection/utils';
 
 import {
@@ -90,7 +79,7 @@ const handleAnomalyDetectorRequest = async (args: Arguments) => {
   const testGetDetectorResponse = await getAnomalyDetectionService().getDetector(
     'ZpjY-38BAw1nCA43DbP4'
   );
-  console.log('TEST - get detector response: ', testGetDetectorResponse);
+  //console.log('TEST - get detector response: ', testGetDetectorResponse);
 
   const visConfig = JSON.parse(args.visConfig);
   const indexPatterns = getIndexPatterns();
@@ -100,17 +89,18 @@ const handleAnomalyDetectorRequest = async (args: Arguments) => {
   const indexPattern = await indexPatterns.get(args.index);
   const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigsState);
 
-  console.log('visConfig: ', visConfig);
-  console.log('indexPattern: ', indexPattern);
-  console.log('aggs: ', aggs);
-
   // TODO: add logic to parse the vis config and the aggs to build an AD creation request
   let detector = {} as Detector;
   detector.name = constructDetectorNameFromVis(args.title);
   detector.description = constructDetectorDescriptionFromVis(args.title);
   detector.timeField = constructDetectorTimeFieldFromVis(args.timeFields, indexPattern);
+  detector.indices = constructDetectorIndexFromIndexPattern(indexPattern);
+  detector.featureAttributes = constructDetectorFeatureAttributesFromVis(aggs);
 
-  console.log('detector to create (so far): ', detector);
+  console.log('detector so far: ', detector);
+
+  // TODO: get filters and query from somewhere
+  //detector.filterQuery = await constructDetectorFilterQueryFromVis(input.filters, input.query);
 
   // Make the request
 };
@@ -154,7 +144,7 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
       multi: true,
     },
   },
-  async fn(table, args, { inspectorAdapters, abortSignal }) {
+  async fn(input, args, { inspectorAdapters, abortSignal }) {
     console.log('running AD expression fn');
     const visConfigParams = JSON.parse(args.visConfig);
 
@@ -170,6 +160,8 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
 
       //   searchSource.setField('index', indexPattern);
       //   searchSource.setField('size', 0);
+
+      // TODO: add filters and query as input. Need to change upstream to pass these values down to this AD fn.
 
       const response = await handleAnomalyDetectorRequest(args);
     } else {
@@ -222,6 +214,6 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
 
     // For now, just return the table, such that this fn performs no actions other than pass the arg
     // through to the next one.
-    return table;
+    return input;
   },
 });

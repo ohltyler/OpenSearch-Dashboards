@@ -36,7 +36,7 @@
 // In addition, this import requires 'anomalyDetectionDashboards' to be listed as a required plugin in visualizations plugin
 // (see visualizations/opensearch_dashboards.json)
 import { Detector } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
-export { Detector } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
+export * from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
 
 export const API_BASE_URL: string = `/api/anomaly_detectors`;
 

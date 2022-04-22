@@ -30,7 +30,9 @@
  * GitHub history for details.
  */
 
-import { IIndexPattern } from '../../../../data/common';
+import { IIndexPattern, IAggConfigs, Filter, Query } from '../../../../data/common';
+import { FeatureAttributes } from '../types';
+import { getSearch } from '../../services';
 
 export const constructDetectorNameFromVis = (visTitle: string) => {
   return visTitle.toLowerCase().replace(/\s/g, '-') + '-detector';
@@ -62,4 +64,48 @@ export const constructDetectorTimeFieldFromVis = (
   }
 
   return timeField;
+};
+
+// TODO: extra cases need to be handled here:
+// 1. users can create vis from a search obj instead of index pattern. note search obj includes an index pattern so it
+// can still be extracted
+// 2. comma-separated list is not supported (e.g., 'index1,index2'). Need to manually split, or add support in backend/frontend AD.
+// 3. other filters or banned fields may be applied in index pattern possibly, need to research
+export const constructDetectorIndexFromIndexPattern = (indexPattern: IIndexPattern): string[] => {
+  return [indexPattern.title];
+};
+
+// TODO: make output (which is feature array) typesafe. Need to figure out how to import or re-defined feature data model
+export const constructDetectorFeatureAttributesFromVis = (
+  aggs: IAggConfigs
+): FeatureAttributes[] => {
+  const feature1: FeatureAttributes = {
+    featureName: 'test',
+    featureEnabled: true,
+    aggregationQuery: {
+      test: {
+        sum: {
+          field: 'value',
+        },
+      },
+    },
+    importance: 1,
+  };
+  return [feature1];
+};
+
+// TODO: find better way to get the raw query. Currently constructing it via search source creation to use its buildOpenSearchQuery
+// helper fn. Note that that's an external fn that could possibly be added here. But still using search source for now since
+// there's some extra context and config used as part of query construction; prefer to not duplicate that logic if possible.
+export const constructDetectorFilterQueryFromVis = async (
+  filters: Filter[],
+  query: Query
+): Promise<any> => {
+  const searchService = getSearch();
+  const searchSource = await searchService.searchSource.create();
+  searchSource.setField('filter', filters);
+  searchSource.setField('query', query);
+  const requestBody = await searchSource.getSearchRequestBody();
+  console.log('request body: ', requestBody);
+  return requestBody;
 };

@@ -36,6 +36,7 @@ import {
   OpenSearchDashboardsDatatable,
   OpenSearchDashboardsDatatableColumn,
   ExpressionFunctionDefinition,
+  VisData,
 } from 'src/plugins/expressions/public';
 // import { PersistedState } from '../../public';
 // import { Adapters } from '../../../inspector';
@@ -62,15 +63,13 @@ import {
 } from '../services';
 
 interface Arguments {
-  title: string;
-  index: string;
+  vis: string;
   aggConfigs: string;
-  visConfig: string;
-  timeFields?: string[];
+  indexPattern: string;
 }
 
 type Input = OpenSearchDashboardsDatatable;
-type Output = Promise<OpenSearchDashboardsDatatable>;
+type Output = Promise<VisData>;
 
 const name = 'anomaly_detection';
 
@@ -114,42 +113,41 @@ export type ExpressionFunctionVisualizationAnomalyDetection = ExpressionFunction
 
 export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisualizationAnomalyDetection => ({
   name,
-  type: 'opensearch_dashboards_datatable',
+  type: 'vis_data',
   inputTypes: ['opensearch_dashboards_datatable'],
   help: i18n.translate('visTypeVislib.functions.anomaly_detection.help', {
     defaultMessage: 'Create an anomaly detector from a visualization',
   }),
   args: {
-    title: {
-      types: ['string'],
-      help: '',
-    },
-    index: {
-      types: ['string'],
-      help: '',
-    },
-    aggConfigs: {
-      types: ['string'],
-      default: '""',
-      help: '',
-    },
-    visConfig: {
+    vis: {
       types: ['string'],
       default: '"{}"',
       help: '',
     },
-    timeFields: {
+    aggConfigs: {
       types: ['string'],
+      default: '"{}"',
       help: '',
-      multi: true,
+    },
+    indexPattern: {
+      types: ['string'],
+      default: '"{}"',
+      help: '',
     },
   },
   async fn(input, args, { inspectorAdapters, abortSignal }) {
-    console.log('running AD expression fn');
-    const visConfigParams = JSON.parse(args.visConfig);
+    const vis = JSON.parse(args.vis);
+    const visConfig = get(vis, 'params', {});
+    const aggConfigs = JSON.parse(args.aggConfigs);
+    const indexPattern = JSON.parse(args.indexPattern);
+
+    console.log('--- in AD vis expr fn ---');
+    console.log('vis: ', vis);
+    console.log('aggconfigs: ', aggConfigs);
+    console.log('indexpattern: ', indexPattern);
 
     // if AD enabled and no detector ID: create a new detector via detector creation expression fn
-    if (visConfigParams.enableAnomalyDetection && !visConfigParams.detectorId) {
+    if (visConfig.enableAnomalyDetection && !visConfig.detectorId) {
       console.log('ad enabled - creating new detector via expression');
 
       //   // Set basic search source info here
@@ -162,8 +160,8 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
       //   searchSource.setField('size', 0);
 
       // TODO: add filters and query as input. Need to change upstream to pass these values down to this AD fn.
-
-      const response = await handleAnomalyDetectorRequest(args);
+      //const response = await handleAnomalyDetectorRequest(args);
+      console.log('ad enabled - skipping call to parse the input for now');
     } else {
       console.log('ad disabled');
     }
@@ -212,8 +210,12 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
     //   }),
     // };
 
-    // For now, just return the table, such that this fn performs no actions other than pass the arg
+    // For now, just return the table and vis config, such that this fn performs no actions other than pass the args
     // through to the next one.
-    return input;
+    return {
+      type: 'vis_data',
+      dataTable: input,
+      visConfig: JSON.stringify(visConfig),
+    };
   },
 });

@@ -436,12 +436,21 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
     // TODO: args to anomaly_detection fn below are copied from other places in this class, that's only
     // applicable under certain conditions. Need to understand all of the different scenarios to know
     // when to add AD code.
-    // visConfig.dimensions = await buildVislibDimensions(vis, params);
-    const visConfig = { ...vis.params };
+    const visParams = { ...vis.params };
+    visParams.dimensions = await buildVislibDimensions(vis, params);
+
+    // populating vis by only filling the fields that will be used in the expr fn
+    // TODO: may do the same for indexpattern if its decided only a few fields are needed from it,
+    // like title and timefield
     pipeline += `anomaly_detection 
-      ${prepareString('title', vis.title)} 
-      ${prepareString('index', indexPattern!.id)} 
-      ${prepareJson('aggConfigs', vis.data.aggs!.aggs)} ${prepareJson('visConfig', visConfig)} | `;
+      ${prepareJson('vis', {
+        title: vis.title,
+        params: { ...visParams },
+        data: { savedSearchId: vis.data.savedSearchId },
+      })} 
+      ${prepareJson('aggConfigs', vis.data.aggs!.aggs)} 
+      ${prepareJson('indexPattern', indexPattern)} 
+       | `;
 
     const schemas = getSchemas(vis, params);
 
@@ -452,9 +461,7 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
         uiState
       );
     } else if (vislibCharts.includes(vis.type.name)) {
-      const visConfig = { ...vis.params };
-      visConfig.dimensions = await buildVislibDimensions(vis, params);
-      pipeline += `vislib type='${vis.type.name}' ${prepareJson('visConfig', visConfig)}`;
+      pipeline += `vislib type='${vis.type.name}'`;
     } else {
       const visConfig = { ...vis.params };
       visConfig.dimensions = schemas;

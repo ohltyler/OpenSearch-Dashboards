@@ -33,15 +33,14 @@
 import { i18n } from '@osd/i18n';
 import {
   ExpressionFunctionDefinition,
-  OpenSearchDashboardsDatatable,
   Render,
 } from '../../expressions/public';
 // @ts-ignore
 import { vislibSeriesResponseHandler } from './vislib/response_handler';
+import { VisData } from '../../expressions/public';
 
 interface Arguments {
   type: string;
-  visConfig: string;
 }
 
 type VisParams = Required<Arguments>;
@@ -53,13 +52,13 @@ interface RenderValue {
 
 export const createVisTypeVislibVisFn = (): ExpressionFunctionDefinition<
   'vislib',
-  OpenSearchDashboardsDatatable,
+  VisData,
   Arguments,
   Render<RenderValue>
 > => ({
   name: 'vislib',
   type: 'render',
-  inputTypes: ['opensearch_dashboards_datatable'],
+  inputTypes: ['vis_data'],
   help: i18n.translate('visTypeVislib.functions.vislib.help', {
     defaultMessage: 'Vislib visualization',
   }),
@@ -69,15 +68,10 @@ export const createVisTypeVislibVisFn = (): ExpressionFunctionDefinition<
       default: '""',
       help: 'vislib vis type',
     },
-    visConfig: {
-      types: ['string'],
-      default: '"{}"',
-      help: '',
-    },
   },
-  fn(context, args) {
-    const visConfigParams = JSON.parse(args.visConfig);
-    const convertedData = vislibSeriesResponseHandler(context, visConfigParams.dimensions);
+  fn(input, args) {
+    const visConfigParams = JSON.parse(input.visConfig);
+    const convertedData = vislibSeriesResponseHandler(input.dataTable, visConfigParams.dimensions);
 
     return {
       type: 'render',

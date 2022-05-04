@@ -134,5 +134,6 @@ export {
   TypeString,
   TypeToString,
   UnmappedTypeStrings,
+  VisData,
   ExpressionValueRender as Render,
 } from '../common';

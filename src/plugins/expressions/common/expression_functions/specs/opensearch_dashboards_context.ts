@@ -105,6 +105,7 @@ export const opensearchDashboardsContextFunction: ExpressionFunctionOpenSearchDa
     let queries = mergeQueries(input?.query, getParsedValue(args?.q, []));
     let filters = [...(input?.filters || []), ...getParsedValue(args?.filters, [])];
 
+    // TODO: extract this saved search id logic into helper fn that can be used in AD expr fn to construct the combined filters & queries
     if (args.savedSearchId) {
       if (typeof getSavedObject !== 'function') {
         throw new Error(

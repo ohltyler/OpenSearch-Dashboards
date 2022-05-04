@@ -45,15 +45,8 @@ import { Filter, Query } from '../../../data/common';
 // import { FilterManager } from '../../../data/public/query';
 
 import { Detector } from '../anomaly_detection';
-import {
-  constructDetectorNameFromVis,
-  constructDetectorDescriptionFromVis,
-  constructDetectorTimeFieldFromVis,
-  constructDetectorIndexFromIndexPattern,
-  constructDetectorFeatureAttributesFromVis,
-  constructDetectorFilterQueryFromVis,
-} from '../anomaly_detection/utils';
-
+import { constructDetectorFromVis } from '../anomaly_detection/utils';
+import { getParsedValue, ExecutionContext } from '../../../expressions/common';
 import {
   getTypes,
   getIndexPatterns,
@@ -66,6 +59,8 @@ interface Arguments {
   vis: string;
   aggConfigs: string;
   indexPattern: string;
+  visQuery?: string | null;
+  visFilters?: string | null;
 }
 
 type Input = OpenSearchDashboardsDatatable;
@@ -73,33 +68,39 @@ type Output = Promise<VisData>;
 
 const name = 'anomaly_detection';
 
-const handleAnomalyDetectorRequest = async (args: Arguments) => {
+const handleAnomalyDetectorRequest = async (
+  args: Arguments,
+  getSavedObject: ExecutionContext['getSavedObject']
+) => {
   console.log('in handleAnomalyDetectorRequest');
   const testGetDetectorResponse = await getAnomalyDetectionService().getDetector(
     'ZpjY-38BAw1nCA43DbP4'
   );
   //console.log('TEST - get detector response: ', testGetDetectorResponse);
 
-  const visConfig = JSON.parse(args.visConfig);
-  const indexPatterns = getIndexPatterns();
+  const vis = JSON.parse(args.vis);
+  const visConfig = get(vis, 'params', {});
+  const aggConfigs = JSON.parse(args.aggConfigs);
+  const indexPatternService = getIndexPatterns();
+  const indexPattern = await indexPatternService.get(JSON.parse(args.indexPattern)!.id);
   //const { filterManager } = getQueryService();
   const searchService = getSearch();
-  const aggConfigsState = JSON.parse(args.aggConfigs);
-  const indexPattern = await indexPatterns.get(args.index);
-  const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigsState);
 
-  // TODO: add logic to parse the vis config and the aggs to build an AD creation request
-  let detector = {} as Detector;
-  detector.name = constructDetectorNameFromVis(args.title);
-  detector.description = constructDetectorDescriptionFromVis(args.title);
-  detector.timeField = constructDetectorTimeFieldFromVis(args.timeFields, indexPattern);
-  detector.indices = constructDetectorIndexFromIndexPattern(indexPattern);
-  detector.featureAttributes = constructDetectorFeatureAttributesFromVis(aggs);
+  // TODO: may be useful for constructing the features
+  const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigs);
+
+  const parsedVisQuery = getParsedValue(args.visQuery, []);
+  const parsedVisFilters = getParsedValue(args.visFilters, []);
+  const detector = await constructDetectorFromVis(
+    vis,
+    indexPattern,
+    aggs,
+    getSavedObject,
+    parsedVisQuery,
+    parsedVisFilters
+  );
 
   console.log('detector so far: ', detector);
-
-  // TODO: get filters and query from somewhere
-  //detector.filterQuery = await constructDetectorFilterQueryFromVis(input.filters, input.query);
 
   // Make the request
 };
@@ -134,17 +135,23 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
       default: '"{}"',
       help: '',
     },
+    visQuery: {
+      types: ['string', 'null'],
+      default: null,
+      help: '',
+    },
+    visFilters: {
+      types: ['string', 'null'],
+      default: '"[]"',
+      help: '',
+    },
   },
-  async fn(input, args, { inspectorAdapters, abortSignal }) {
+  async fn(input, args, { getSavedObject }) {
     const vis = JSON.parse(args.vis);
     const visConfig = get(vis, 'params', {});
-    const aggConfigs = JSON.parse(args.aggConfigs);
-    const indexPattern = JSON.parse(args.indexPattern);
 
     console.log('--- in AD vis expr fn ---');
     console.log('vis: ', vis);
-    console.log('aggconfigs: ', aggConfigs);
-    console.log('indexpattern: ', indexPattern);
 
     // if AD enabled and no detector ID: create a new detector via detector creation expression fn
     if (visConfig.enableAnomalyDetection && !visConfig.detectorId) {
@@ -158,10 +165,7 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
 
       //   searchSource.setField('index', indexPattern);
       //   searchSource.setField('size', 0);
-
-      // TODO: add filters and query as input. Need to change upstream to pass these values down to this AD fn.
-      //const response = await handleAnomalyDetectorRequest(args);
-      console.log('ad enabled - skipping call to parse the input for now');
+      const response = await handleAnomalyDetectorRequest(args, getSavedObject);
     } else {
       console.log('ad disabled');
     }

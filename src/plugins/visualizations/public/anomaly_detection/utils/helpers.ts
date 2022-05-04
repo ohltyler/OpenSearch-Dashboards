@@ -33,31 +33,23 @@
 import { IIndexPattern, IAggConfigs, Filter, Query } from '../../../../data/common';
 import { FeatureAttributes } from '../types';
 import { getSearch } from '../../services';
+import { Detector } from '../../anomaly_detection';
+import {
+  mergeQueriesAndFiltersWithSavedSearch,
+  ExecutionContext,
+} from '../../../../expressions/common';
 
-export const constructDetectorNameFromVis = (visTitle: string) => {
+const constructDetectorNameFromVis = (visTitle: string) => {
   return visTitle.toLowerCase().replace(/\s/g, '-') + '-detector';
 };
 
-export const constructDetectorDescriptionFromVis = (visTitle: string) => {
+const constructDetectorDescriptionFromVis = (visTitle: string) => {
   return `Anomaly detector based off of the visualization: '${visTitle}'`;
 };
 
 // TODO: figure out proper error handling in here. Right now just printing log lines
-export const constructDetectorTimeFieldFromVis = (
-  timeFields: string[] | undefined,
-  indexPattern: IIndexPattern
-): string => {
-  let timeField = undefined as string | undefined;
-  if (timeFields && timeFields.length > 0) {
-    if (timeFields.length > 1) {
-      console.log('too many timefields - only one can be specified');
-    } else {
-      timeField = timeFields[0];
-    }
-  } else {
-    timeField = indexPattern !== undefined ? indexPattern.getTimeField?.()?.name : '';
-  }
-
+const constructDetectorTimeFieldFromVis = (indexPattern: IIndexPattern): string => {
+  const timeField = indexPattern !== undefined ? indexPattern.getTimeField?.()?.name : '';
   if (timeField === undefined || timeField.length === 0) {
     console.log('no valid time fields found');
     return '';
@@ -71,14 +63,12 @@ export const constructDetectorTimeFieldFromVis = (
 // can still be extracted
 // 2. comma-separated list is not supported (e.g., 'index1,index2'). Need to manually split, or add support in backend/frontend AD.
 // 3. other filters or banned fields may be applied in index pattern possibly, need to research
-export const constructDetectorIndexFromIndexPattern = (indexPattern: IIndexPattern): string[] => {
+const constructDetectorIndexFromIndexPattern = (indexPattern: IIndexPattern): string[] => {
   return [indexPattern.title];
 };
 
 // TODO: make output (which is feature array) typesafe. Need to figure out how to import or re-defined feature data model
-export const constructDetectorFeatureAttributesFromVis = (
-  aggs: IAggConfigs
-): FeatureAttributes[] => {
+const constructDetectorFeatureAttributesFromVis = (aggs: IAggConfigs): FeatureAttributes[] => {
   const feature1: FeatureAttributes = {
     featureName: 'test',
     featureEnabled: true,
@@ -97,7 +87,7 @@ export const constructDetectorFeatureAttributesFromVis = (
 // TODO: find better way to get the raw query. Currently constructing it via search source creation to use its buildOpenSearchQuery
 // helper fn. Note that that's an external fn that could possibly be added here. But still using search source for now since
 // there's some extra context and config used as part of query construction; prefer to not duplicate that logic if possible.
-export const constructDetectorFilterQueryFromVis = async (
+const constructDetectorFilterQueryFromVis = async (
   filters: Filter[],
   query: Query
 ): Promise<any> => {
@@ -108,4 +98,38 @@ export const constructDetectorFilterQueryFromVis = async (
   const requestBody = await searchSource.getSearchRequestBody();
   console.log('request body: ', requestBody);
   return requestBody;
+};
+
+export const constructDetectorFromVis = async (
+  vis: any,
+  indexPattern: IIndexPattern,
+  aggs: IAggConfigs,
+  getSavedObject: ExecutionContext['getSavedObject'],
+  visQuery: [],
+  visFilters: []
+): Promise<Detector> => {
+  let detector = {} as Detector;
+  detector.name = constructDetectorNameFromVis(vis.title);
+  detector.description = constructDetectorDescriptionFromVis(vis.title);
+  detector.timeField = constructDetectorTimeFieldFromVis(indexPattern);
+  detector.indices = constructDetectorIndexFromIndexPattern(indexPattern);
+
+  // Merge any vis queries/filters with those from a saved search, if applicable
+  let combinedQueries = [];
+  let combinedFilters = [];
+  if (vis.data!.savedSearchId) {
+    [combinedQueries, combinedFilters] = await mergeQueriesAndFiltersWithSavedSearch(
+      visQuery,
+      visFilters,
+      vis.data.savedSearchId,
+      getSavedObject
+    );
+  }
+
+  // TODO: uncomment the line below with the combinedQueries/combinedFilters. Sanity test the output
+  //detector.filterQuery = constructDetectorFilterQueryFromVis(filters, query);
+
+  //detector.featureAttributes = constructDetectorFeatureAttributesFromVis(aggs);
+
+  return detector;
 };

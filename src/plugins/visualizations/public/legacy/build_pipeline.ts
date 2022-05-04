@@ -442,7 +442,14 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
     // populating vis by only filling the fields that will be used in the expr fn
     // TODO: may do the same for indexpattern if its decided only a few fields are needed from it,
     // like title and timefield
-    pipeline += `anomaly_detection 
+    pipeline += `anomaly_detection `;
+    if (query) {
+      pipeline += prepareJson('visQuery', query);
+    }
+    if (filters) {
+      pipeline += prepareJson('visFilters', filters);
+    }
+    pipeline += `
       ${prepareJson('vis', {
         title: vis.title,
         params: { ...visParams },

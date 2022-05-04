@@ -34,6 +34,7 @@ import { i18n } from '@osd/i18n';
 import { ExpressionFunctionDefinition } from '../../expression_functions';
 import { OpenSearchDashboardsContext } from '../../expression_types';
 import { Query, uniqFilters } from '../../../../data/common';
+import { ExecutionContext } from '../../execution';
 
 interface Arguments {
   q?: string | null;
@@ -49,7 +50,7 @@ export type ExpressionFunctionOpenSearchDashboardsContext = ExpressionFunctionDe
   Promise<OpenSearchDashboardsContext>
 >;
 
-const getParsedValue = (data: any, defaultValue: any) =>
+export const getParsedValue = (data: any, defaultValue: any) =>
   typeof data === 'string' && data.length ? JSON.parse(data) || defaultValue : defaultValue;
 
 const mergeQueries = (first: Query | Query[] = [], second: Query | Query[]) =>
@@ -57,6 +58,33 @@ const mergeQueries = (first: Query | Query[] = [], second: Query | Query[]) =>
     [...(Array.isArray(first) ? first : [first]), ...(Array.isArray(second) ? second : [second])],
     (n: any) => JSON.stringify(n.query)
   );
+
+export const mergeQueriesAndFiltersWithSavedSearch = async (
+  queries: Query[],
+  filters: any[],
+  savedSearchId: string,
+  getSavedObject: ExecutionContext['getSavedObject']
+): Promise<any[]> => {
+  if (typeof getSavedObject !== 'function') {
+    throw new Error(
+      '"getSavedObject" function not available in execution context. ' +
+        'When you execute expression you need to add extra execution context ' +
+        'as the third argument and provide "getSavedObject" implementation.'
+    );
+  }
+  const obj = await getSavedObject('search', savedSearchId);
+  const search = obj.attributes.kibanaSavedObjectMeta as {
+    searchSourceJSON: string;
+  };
+  const { query, filter } = getParsedValue(search.searchSourceJSON, {});
+  if (query) {
+    queries = mergeQueries(queries, query);
+  }
+  if (filter) {
+    filters = [...filters, ...(Array.isArray(filter) ? filter : [filter])];
+  }
+  return [queries, filters];
+};
 
 export const opensearchDashboardsContextFunction: ExpressionFunctionOpenSearchDashboardsContext = {
   name: 'opensearch_dashboards_context',
@@ -105,27 +133,13 @@ export const opensearchDashboardsContextFunction: ExpressionFunctionOpenSearchDa
     let queries = mergeQueries(input?.query, getParsedValue(args?.q, []));
     let filters = [...(input?.filters || []), ...getParsedValue(args?.filters, [])];
 
-    // TODO: extract this saved search id logic into helper fn that can be used in AD expr fn to construct the combined filters & queries
     if (args.savedSearchId) {
-      if (typeof getSavedObject !== 'function') {
-        throw new Error(
-          '"getSavedObject" function not available in execution context. ' +
-            'When you execute expression you need to add extra execution context ' +
-            'as the third argument and provide "getSavedObject" implementation.'
-        );
-      }
-      const obj = await getSavedObject('search', args.savedSearchId);
-      const search = obj.attributes.kibanaSavedObjectMeta as {
-        searchSourceJSON: string;
-      };
-      const { query, filter } = getParsedValue(search.searchSourceJSON, {});
-
-      if (query) {
-        queries = mergeQueries(queries, query);
-      }
-      if (filter) {
-        filters = [...filters, ...(Array.isArray(filter) ? filter : [filter])];
-      }
+      [queries, filters] = await mergeQueriesAndFiltersWithSavedSearch(
+        queries,
+        filters,
+        args.savedSearchId,
+        getSavedObject
+      );
     }
 
     return {

@@ -89,8 +89,9 @@ const handleAnomalyDetectorRequest = async (
   // TODO: may be useful for constructing the features
   const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigs);
 
-  const parsedVisQuery = getParsedValue(args.visQuery, []);
+  const parsedVisQuery = getParsedValue(args.visQuery, {}) as Query;
   const parsedVisFilters = getParsedValue(args.visFilters, []);
+
   const detector = await constructDetectorFromVis(
     vis,
     indexPattern,
@@ -149,9 +150,6 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
   async fn(input, args, { getSavedObject }) {
     const vis = JSON.parse(args.vis);
     const visConfig = get(vis, 'params', {});
-
-    console.log('--- in AD vis expr fn ---');
-    console.log('vis: ', vis);
 
     // if AD enabled and no detector ID: create a new detector via detector creation expression fn
     if (visConfig.enableAnomalyDetection && !visConfig.detectorId) {

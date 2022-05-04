@@ -30,7 +30,13 @@
  * GitHub history for details.
  */
 
-import { IIndexPattern, IAggConfigs, Filter, Query } from '../../../../data/common';
+import {
+  IIndexPattern,
+  IAggConfigs,
+  Filter,
+  Query,
+  buildOpenSearchQuery,
+} from '../../../../data/common';
 import { FeatureAttributes } from '../types';
 import { getSearch } from '../../services';
 import { Detector } from '../../anomaly_detection';
@@ -84,20 +90,12 @@ const constructDetectorFeatureAttributesFromVis = (aggs: IAggConfigs): FeatureAt
   return [feature1];
 };
 
-// TODO: find better way to get the raw query. Currently constructing it via search source creation to use its buildOpenSearchQuery
-// helper fn. Note that that's an external fn that could possibly be added here. But still using search source for now since
-// there's some extra context and config used as part of query construction; prefer to not duplicate that logic if possible.
-const constructDetectorFilterQueryFromVis = async (
-  filters: Filter[],
-  query: Query
-): Promise<any> => {
-  const searchService = getSearch();
-  const searchSource = await searchService.searchSource.create();
-  searchSource.setField('filter', filters);
-  searchSource.setField('query', query);
-  const requestBody = await searchSource.getSearchRequestBody();
-  console.log('request body: ', requestBody);
-  return requestBody;
+const constructDetectorFilterQuery = (
+  indexPattern: IIndexPattern,
+  queries: Query[],
+  filters: Filter[]
+): any => {
+  return buildOpenSearchQuery(indexPattern, queries, filters);
 };
 
 export const constructDetectorFromVis = async (
@@ -105,7 +103,7 @@ export const constructDetectorFromVis = async (
   indexPattern: IIndexPattern,
   aggs: IAggConfigs,
   getSavedObject: ExecutionContext['getSavedObject'],
-  visQuery: [],
+  visQuery: Query,
   visFilters: []
 ): Promise<Detector> => {
   let detector = {} as Detector;
@@ -115,20 +113,23 @@ export const constructDetectorFromVis = async (
   detector.indices = constructDetectorIndexFromIndexPattern(indexPattern);
 
   // Merge any vis queries/filters with those from a saved search, if applicable
-  let combinedQueries = [];
-  let combinedFilters = [];
+  let combinedQueries = [visQuery];
+  let combinedFilters = visFilters;
   if (vis.data!.savedSearchId) {
     [combinedQueries, combinedFilters] = await mergeQueriesAndFiltersWithSavedSearch(
-      visQuery,
+      [visQuery],
       visFilters,
       vis.data.savedSearchId,
       getSavedObject
     );
   }
+  detector.filterQuery = constructDetectorFilterQuery(
+    indexPattern,
+    combinedQueries,
+    combinedFilters
+  );
 
-  // TODO: uncomment the line below with the combinedQueries/combinedFilters. Sanity test the output
-  //detector.filterQuery = constructDetectorFilterQueryFromVis(filters, query);
-
+  // TODO: get detector feature parsing working
   //detector.featureAttributes = constructDetectorFeatureAttributesFromVis(aggs);
 
   return detector;

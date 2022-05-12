@@ -20,6 +20,10 @@ import { BasicVislibParams } from '../../../types';
 function DetectorPanel(props: ValidationVisOptionsProps<BasicVislibParams>) {
   const { stateParams, setValue, vis } = props;
 
+  console.log('detector panel - vis: ', vis);
+  //console.log('setting detector id manually');
+  //setValue('detectorId', '');
+
   return (
     <>
       <EuiSpacer size="m" />
@@ -32,7 +36,15 @@ function DetectorPanel(props: ValidationVisOptionsProps<BasicVislibParams>) {
         value={stateParams.showAnomalies}
         setValue={(paramName, value) => setValue(paramName, value)}
       />
-      {stateParams.detectorId && <EuiText>`Detector ID: ${stateParams.detectorId}`</EuiText>}
+      {stateParams.detectorId && (
+        <>
+          {' '}
+          <EuiSpacer size="m" />{' '}
+          <EuiText size="s">
+            <b>Detector ID:</b> {stateParams.detectorId}
+          </EuiText>{' '}
+        </>
+      )}
     </>
   );
 }

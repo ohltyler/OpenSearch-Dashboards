@@ -49,6 +49,7 @@ class DefaultEditorController {
   ) {}
 
   render(props: EditorRenderProps) {
+    console.log('editor: vis: ', this.vis);
     render(
       <EuiErrorBoundary>
         <Suspense

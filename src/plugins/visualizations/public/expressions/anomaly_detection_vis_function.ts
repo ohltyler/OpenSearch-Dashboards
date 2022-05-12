@@ -101,9 +101,10 @@ const handleAnomalyDetectorRequest = async (
     parsedVisFilters
   );
 
-  console.log('detector so far: ', detector);
-
-  // Make the request
+  // console.log('converted detector to create: ', detector);
+  const createDetectorResponse = await getAnomalyDetectionService().createDetector(detector);
+  console.log('response: ', createDetectorResponse);
+  return createDetectorResponse;
 };
 
 export type ExpressionFunctionVisualizationAnomalyDetection = ExpressionFunctionDefinition<
@@ -149,7 +150,8 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
   },
   async fn(input, args, { getSavedObject }) {
     const vis = JSON.parse(args.vis);
-    const visConfig = get(vis, 'params', {});
+    let visConfig = get(vis, 'params', {});
+    //console.log('visconfig: ', visConfig);
 
     // if AD enabled and no detector ID: create a new detector via detector creation expression fn
     if (visConfig.enableAnomalyDetection && !visConfig.detectorId) {
@@ -164,6 +166,15 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
       //   searchSource.setField('index', indexPattern);
       //   searchSource.setField('size', 0);
       const response = await handleAnomalyDetectorRequest(args, getSavedObject);
+      const detectorId = get(response, 'response.id', null);
+      if (detectorId) {
+        //console.log('setting detector id in vis config: ', detectorId);
+        visConfig = { ...visConfig, detectorId: detectorId };
+      } else {
+        //console.log('detector already created or some other error happened when trying to create');
+      }
+
+      //console.log('vis config now: ', visConfig);
     } else {
       console.log('ad disabled');
     }

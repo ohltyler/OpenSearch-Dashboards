@@ -20,9 +20,17 @@ import { BasicVislibParams } from '../../../types';
 function DetectorPanel(props: ValidationVisOptionsProps<BasicVislibParams>) {
   const { stateParams, setValue, vis } = props;
 
-  console.log('detector panel - vis: ', vis);
-  //console.log('setting detector id manually');
-  //setValue('detectorId', '');
+  console.log('vis: ', vis);
+  console.log('vis.params: ', vis.params);
+  console.log('state params ID: ', stateParams.detectorId);
+  console.log('vis ID: ', vis.params.detectorId);
+  console.log('vis.params now: ', vis.params);
+  console.log('vis now: ', vis);
+
+  if (stateParams.detectorId !== vis.params.detectorId) {
+    console.log('setting detector id to ' + vis.params.detectorId);
+    setValue('detectorId', vis.params.detectorId);
+  }
 
   return (
     <>

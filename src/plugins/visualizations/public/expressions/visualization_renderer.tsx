@@ -53,6 +53,16 @@ export const visualization = () => ({
 
     vis.eventsSubject = { next: handlers.event };
 
+    // console.log('AD state changed: ', visConfig.adStateChanged);
+    // //handlers.update({ params: visConfig });
+    // //console.log('visConfig: ', visConfig);
+
+    if (visConfig.adStateChanged === true) {
+      //vis.params = { ...vis.params, adStateChanged: false };
+      console.log('params: ', params);
+      handlers.event({ name: 'detector', data: visConfig.detectorId });
+    }
+
     const uiState = handlers.uiState || vis.getUiState();
 
     handlers.onDestroy(() => {

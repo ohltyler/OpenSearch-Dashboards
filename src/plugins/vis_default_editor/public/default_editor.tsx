@@ -75,6 +75,7 @@ function DefaultEditor({
   }, []);
 
   useEffect(() => {
+    console.log('in embeddable and eventEmitter hook in default_editor');
     if (!visRef.current) {
       return;
     }
@@ -88,6 +89,7 @@ function DefaultEditor({
   }, [embeddableHandler, eventEmitter]);
 
   useEffect(() => {
+    console.log('in default_editor hook - vis: ', vis);
     embeddableHandler.updateInput({
       timeRange,
       filters,

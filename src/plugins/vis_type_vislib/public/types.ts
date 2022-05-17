@@ -110,4 +110,5 @@ export interface BasicVislibParams extends CommonVislibParams {
   enableAnomalyDetection: boolean;
   showAnomalies: boolean;
   detectorId: string;
+  adStateChanged: boolean;
 }

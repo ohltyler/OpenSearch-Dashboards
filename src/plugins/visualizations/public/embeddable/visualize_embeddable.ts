@@ -328,6 +328,19 @@ export class VisualizeEmbeddable
           return;
         }
 
+        //TODO: get this update to trigger a re-render of the entire sidebar somehow. Right now the
+        // detector ID and any other data isn't shown until clicking on the sidebar manually to
+        // trigger it.
+
+        // if there was some change in AD state: update
+        if (event.name === 'detector') {
+          this.vis.params = { ...this.vis.params, detectorId: event.data };
+          this.updateInput({
+            ...this.vis.params,
+          });
+          return;
+        }
+
         if (!this.input.disableTriggers) {
           const triggerId = get(VIS_EVENT_TO_TRIGGER, event.name, VIS_EVENT_TO_TRIGGER.filter);
           let context;
@@ -401,6 +414,7 @@ export class VisualizeEmbeddable
       abortSignal: this.abortController!.signal,
     });
 
+    console.log('in updateHandler()');
     if (this.handler && !abortController.signal.aborted) {
       this.handler.update(this.expression, expressionParams);
     }

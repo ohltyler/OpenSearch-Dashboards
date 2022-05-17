@@ -22,6 +22,7 @@ import { DetectorPanel } from './detector_panel';
 function AnomalyDetectionOptions(props: ValidationVisOptionsProps<BasicVislibParams>) {
   const { stateParams, setValue, vis } = props;
 
+  //setValue('adStateChanged', false);
   return (
     <>
       <EuiPanel paddingSize="s">
@@ -41,7 +42,13 @@ function AnomalyDetectionOptions(props: ValidationVisOptionsProps<BasicVislibPar
           })}
           paramName="enableAnomalyDetection"
           value={stateParams.enableAnomalyDetection}
-          setValue={(paramName, value) => setValue(paramName, value)}
+          setValue={(paramName, value) => {
+            setValue(paramName, value);
+            // this will make sure that after the expression fn is ran, we reload the editor to pull
+            // latest changes (showing/removing detector ID if creating/deleting detector, respectively)
+            console.log('setting value back to true');
+            setValue('adStateChanged', true);
+          }}
         />
         {stateParams.enableAnomalyDetection && <DetectorPanel {...props} />}
       </EuiPanel>

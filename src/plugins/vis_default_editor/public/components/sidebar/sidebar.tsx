@@ -115,6 +115,9 @@ function DefaultEditorSideBar({
       return;
     }
 
+    console.log('in sidebar - state.params: ', state.params);
+    console.log('vis: ', vis);
+
     vis.setState({
       ...vis.serialize(),
       params: state.params,

@@ -332,9 +332,10 @@ export class VisualizeEmbeddable
         // detector ID and any other data isn't shown until clicking on the sidebar manually to
         // trigger it.
 
-        // if there was some change in AD state: update
+        // if there was some change in AD state: update it.
+        // also set the ad state changed back to false.
         if (event.name === 'detector') {
-          this.vis.params = { ...this.vis.params, detectorId: event.data };
+          this.vis.params = { ...this.vis.params, detectorId: event.data, adStateChanged: false };
           this.updateInput({
             ...this.vis.params,
           });

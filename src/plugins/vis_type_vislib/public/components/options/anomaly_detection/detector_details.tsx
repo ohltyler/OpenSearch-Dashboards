@@ -10,12 +10,13 @@
  */
 
 import React from 'react';
-import { EuiSpacer, EuiText } from '@elastic/eui';
+import { EuiSpacer, EuiText, EuiLink } from '@elastic/eui';
 
 import { ValidationVisOptionsProps } from '../../common';
 import { BasicVislibParams } from '../../../types';
 import { EmptyDetectorDetails } from './empty_detector_details';
 import { isEmpty } from 'lodash';
+import { getAnomalyDetectorUrl } from './utils';
 
 function DetectorDetails(props: ValidationVisOptionsProps<BasicVislibParams>) {
   const { stateParams, setValue, vis } = props;
@@ -25,9 +26,18 @@ function DetectorDetails(props: ValidationVisOptionsProps<BasicVislibParams>) {
     <>
       <EuiSpacer size="m" />
       {isDetectorCreated ? (
-        <EuiText size="s">
-          <b>Detector ID:</b> {stateParams.detectorId}
-        </EuiText>
+        <>
+          <EuiText size="s">
+            <b>Detector ID:</b> {stateParams.detectorId}
+          </EuiText>
+          <EuiSpacer size="m" />
+          <EuiLink
+            data-test-subj="viewSampleDetectorLink"
+            href={getAnomalyDetectorUrl(stateParams.detectorId)}
+          >
+            <EuiText size="s">View in the Anomaly Detection Plugin</EuiText>
+          </EuiLink>
+        </>
       ) : (
         <EmptyDetectorDetails />
       )}

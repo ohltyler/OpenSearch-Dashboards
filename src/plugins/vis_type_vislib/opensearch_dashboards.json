@@ -3,7 +3,14 @@
   "version": "opensearchDashboards",
   "server": true,
   "ui": true,
-  "requiredPlugins": ["charts", "data", "expressions", "visualizations", "opensearchDashboardsLegacy"],
+  "requiredPlugins": [
+    "charts",
+    "data",
+    "expressions",
+    "visualizations",
+    "opensearchDashboardsLegacy",
+    "anomalyDetectionDashboards"
+  ],
   "optionalPlugins": ["visTypeXy"],
   "requiredBundles": ["opensearchDashboardsUtils", "visDefaultEditor"]
 }

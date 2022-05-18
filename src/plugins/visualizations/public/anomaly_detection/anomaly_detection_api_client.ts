@@ -33,6 +33,7 @@
 import { HttpSetup } from 'src/core/public';
 import { IAnomalyDetectionApiClient, API_BASE_URL, Detector } from './types';
 
+// NOTE: these are making calls to server-side AD plugin. Check server/routes/ad.ts to see server/node API spec.
 export class AnomalyDetectionApiClient implements IAnomalyDetectionApiClient {
   private http: HttpSetup;
 
@@ -48,5 +49,21 @@ export class AnomalyDetectionApiClient implements IAnomalyDetectionApiClient {
   createDetector = (detector: Detector): Promise<any> => {
     const path = `${API_BASE_URL}/detectors`;
     return this.http.post(path, { body: JSON.stringify(detector) });
+  };
+
+  startRealTimeDetectorJob = (detectorId: string): Promise<any> => {
+    const path = `${API_BASE_URL}/detectors/${detectorId}/start`;
+    return this.http.post(path, {});
+  };
+
+  startHistoricalDetectorJob = (
+    detectorId: string,
+    startTimeMillis: number,
+    endTimeMillis: number
+  ): Promise<any> => {
+    const path = `${API_BASE_URL}/detectors/${detectorId}/start`;
+    return this.http.post(path, {
+      body: JSON.stringify({ startTime: startTimeMillis, endTime: endTimeMillis }),
+    });
   };
 }

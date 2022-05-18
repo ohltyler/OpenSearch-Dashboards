@@ -33,6 +33,26 @@ function DetectorPanel(props: ValidationVisOptionsProps<BasicVislibParams>) {
     <>
       <EuiSpacer size="m" />
       <SwitchOption
+        data-test-subj="realTimeAnomalyDetection"
+        label={i18n.translate('visTypeVislib.editors.anomalyDetection.realTimeAnomalyDetection', {
+          defaultMessage: 'Real-time',
+        })}
+        paramName="realTimeAnomalyDetection"
+        value={stateParams.realTimeAnomalyDetection}
+        setValue={(paramName, value) => setValue(paramName, value)}
+      />
+      <EuiSpacer size="m" />
+      <SwitchOption
+        data-test-subj="historicalAnomalyDetection"
+        label={i18n.translate('visTypeVislib.editors.anomalyDetection.historicalAnomalyDetection', {
+          defaultMessage: 'Historical',
+        })}
+        paramName="historicalAnomalyDetection"
+        value={stateParams.historicalAnomalyDetection}
+        setValue={(paramName, value) => setValue(paramName, value)}
+      />
+      <EuiSpacer size="m" />
+      <SwitchOption
         data-test-subj="showAnomalies"
         label={i18n.translate('visTypeVislib.editors.anomalyDetection.showAnomalies', {
           defaultMessage: 'Show anomalies in chart',

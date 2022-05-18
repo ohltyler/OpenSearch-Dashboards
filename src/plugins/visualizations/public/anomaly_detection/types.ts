@@ -43,4 +43,10 @@ export const API_BASE_URL: string = `/api/anomaly_detectors`;
 export interface IAnomalyDetectionApiClient {
   getDetector: (detectorId: string) => Promise<any>;
   createDetector: (detector: Detector) => Promise<any>;
+  startRealTimeDetectorJob: (detectorId: string) => Promise<any>;
+  startHistoricalDetectorJob: (
+    detectorId: string,
+    startTimeMillis: number,
+    endTimeMillis: number
+  ) => Promise<any>;
 }

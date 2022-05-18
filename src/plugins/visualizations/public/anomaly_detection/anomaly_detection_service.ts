@@ -47,7 +47,6 @@ export class AnomalyDetectionService {
    * Get detector based on detector ID
    */
   getDetector = async (detectorId: string) => {
-    // call using configured API client
     return this.apiClient.getDetector(detectorId);
   };
 
@@ -55,8 +54,25 @@ export class AnomalyDetectionService {
    * Create detector
    */
   createDetector = async (detector: Detector) => {
-    // call using configured API client
     return this.apiClient.createDetector(detector);
+  };
+
+  /**
+   * Start real-time anomaly detection job
+   */
+  startRealTimeDetectorJob = async (detectorId: string) => {
+    return this.apiClient.startRealTimeDetectorJob(detectorId);
+  };
+
+  /**
+   * Start historical anomaly detection job
+   */
+  startHistoricalDetectorJob = async (
+    detectorId: string,
+    startTimeMillis: number,
+    endTimeMillis: number
+  ) => {
+    return this.apiClient.startHistoricalDetectorJob(detectorId, startTimeMillis, endTimeMillis);
   };
 }
 

@@ -85,10 +85,9 @@ const handleAnomalyDetectorRequest = async (
   const indexPattern = await indexPatternService.get(JSON.parse(args.indexPattern)!.id);
   //const { filterManager } = getQueryService();
   const searchService = getSearch();
+  const anomalyDetectionService = getAnomalyDetectionService();
 
-  // TODO: may be useful for constructing the features
   const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigs);
-
   const parsedVisQuery = getParsedValue(args.visQuery, {}) as Query;
   const parsedVisFilters = getParsedValue(args.visFilters, []);
 
@@ -101,9 +100,34 @@ const handleAnomalyDetectorRequest = async (
     parsedVisFilters
   );
 
-  // console.log('converted detector to create: ', detector);
-  const createDetectorResponse = await getAnomalyDetectionService().createDetector(detector);
-  console.log('response: ', createDetectorResponse);
+  const createDetectorResponse = await anomalyDetectionService.createDetector(detector);
+  console.log('create detector response: ', createDetectorResponse);
+  const detectorId = get(createDetectorResponse, 'response.id', '');
+
+  if (visConfig.realTimeAnomalyDetection) {
+    console.log('kicking off RT AD job');
+    const startRealTimeDetectorJobResponse = await anomalyDetectionService.startRealTimeDetectorJob(
+      detectorId
+    );
+    console.log('start real-time response: ', startRealTimeDetectorJobResponse);
+  }
+
+  if (visConfig.historicalAnomalyDetection) {
+    console.log('kicking off historical AD job');
+
+    // right now we pull the time range from the vis config. the range as stored in different agg configs (e.g., x-axis date-histogram)
+    // may be stored in string-form and require some more conversion (e.g., 'now-7d', 'now').
+    const timeRange = get(vis, 'params.dimensions.x.params.bounds', {});
+    const startTimeMillis = Date.parse(get(timeRange, 'min', ''));
+    const endTimeMillis = Date.parse(get(timeRange, 'max', ''));
+    const startHistoricalDetectorJobResponse = await anomalyDetectionService.startHistoricalDetectorJob(
+      detectorId,
+      startTimeMillis,
+      endTimeMillis
+    );
+    console.log('start historical response: ', startHistoricalDetectorJobResponse);
+  }
+
   return createDetectorResponse;
 };
 
@@ -151,9 +175,12 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
   async fn(input, args, { getSavedObject }) {
     const vis = JSON.parse(args.vis);
     let visConfig = get(vis, 'params', {});
-    //console.log('visconfig: ', visConfig);
+    console.log('visconfig: ', visConfig);
 
-    // if AD enabled and no detector ID: create a new detector via detector creation expression fn
+    // if AD enabled and no detector ID: create a new detector via detector creation expression fn.
+    // for detection jobs:
+    // kick off real-time job
+    // run historical job based on range in vis
     if (visConfig.enableAnomalyDetection && !visConfig.detectorId) {
       console.log('ad enabled - creating new detector via expression');
 

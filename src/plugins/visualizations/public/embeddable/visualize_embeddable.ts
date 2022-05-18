@@ -331,7 +331,7 @@ export class VisualizeEmbeddable
         // if there was some change in AD state: update it.
         // also set the ad state changed back to false.
         if (event.name === 'anomalyDetection') {
-          console.log('updating vis with detector id in visualize_embeddable: ', event.data)
+          console.log('updating vis with detector id in visualize_embeddable: ', event.data);
           this.vis.params = {
             ...this.vis.params,
             detectorId: event.data,

@@ -140,6 +140,13 @@ export const createLineVisTypeDefinition = (deps: VisTypeVislibDependencies) => 
         style: ThresholdLineStyles.FULL,
         color: euiPaletteColorBlind()[9],
       },
+      enableAnomalyDetection: false,
+      showAnomalies: true,
+      historicalAnomalyDetection: true,
+      realTimeAnomalyDetection: true,
+      detectorId: undefined,
+      adStateChanged: false,
+      showAdDetails: false,
     },
   },
   events: {

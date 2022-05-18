@@ -10,22 +10,19 @@
  */
 
 import React from 'react';
-import { EuiSpacer, EuiText } from '@elastic/eui';
+import { EuiSpacer } from '@elastic/eui';
 import { i18n } from '@osd/i18n';
 
 import { ValidationVisOptionsProps } from '../../common';
 import { SwitchOption } from '../../../../../charts/public';
 import { BasicVislibParams } from '../../../types';
+import { DetectorDetails } from './detector_details';
 
 function DetectorPanel(props: ValidationVisOptionsProps<BasicVislibParams>) {
   const { stateParams, setValue, vis } = props;
 
-  console.log('vis: ', vis);
-  console.log('vis.params: ', vis.params);
   console.log('state params ID: ', stateParams.detectorId);
   console.log('vis ID: ', vis.params.detectorId);
-  console.log('vis.params now: ', vis.params);
-  console.log('vis now: ', vis);
 
   if (stateParams.detectorId !== vis.params.detectorId) {
     console.log('setting detector id to ' + vis.params.detectorId);
@@ -44,15 +41,17 @@ function DetectorPanel(props: ValidationVisOptionsProps<BasicVislibParams>) {
         value={stateParams.showAnomalies}
         setValue={(paramName, value) => setValue(paramName, value)}
       />
-      {stateParams.detectorId && (
-        <>
-          {' '}
-          <EuiSpacer size="m" />{' '}
-          <EuiText size="s">
-            <b>Detector ID:</b> {stateParams.detectorId}
-          </EuiText>{' '}
-        </>
-      )}
+      <EuiSpacer size="m" />
+      <SwitchOption
+        data-test-subj="showAdDetails"
+        label={i18n.translate('visTypeVislib.editors.anomalyDetection.showAdDetails', {
+          defaultMessage: 'Show anomaly detector details',
+        })}
+        paramName="showAdDetails"
+        value={stateParams.showAdDetails}
+        setValue={(paramName, value) => setValue(paramName, value)}
+      />
+      {stateParams.showAdDetails && <DetectorDetails {...props} />}
     </>
   );
 }

@@ -58,7 +58,7 @@ export const visualization = () => ({
     // //console.log('visConfig: ', visConfig);
 
     if (visConfig.adStateChanged === true) {
-      //vis.params = { ...vis.params, adStateChanged: false };
+      console.log('pushing new event with detector id: ', visConfig.detectorId);
       handlers.event({ name: 'detector', data: visConfig.detectorId });
     }
 

@@ -328,17 +328,15 @@ export class VisualizeEmbeddable
           return;
         }
 
-        //TODO: get this update to trigger a re-render of the entire sidebar somehow. Right now the
-        // detector ID and any other data isn't shown until clicking on the sidebar manually to
-        // trigger it.
-
         // if there was some change in AD state: update it.
         // also set the ad state changed back to false.
         if (event.name === 'detector') {
-          this.vis.params = { ...this.vis.params, detectorId: event.data, adStateChanged: false };
-          this.updateInput({
+          console.log('updating vis with detector id in visualize_embeddable: ', event.data)
+          this.vis.params = {
             ...this.vis.params,
-          });
+            detectorId: event.data,
+            adStateChanged: false,
+          };
           return;
         }
 

@@ -46,8 +46,11 @@ function AnomalyDetectionOptions(props: ValidationVisOptionsProps<BasicVislibPar
             setValue(paramName, value);
             // this will make sure that after the expression fn is ran, we reload the editor to pull
             // latest changes (showing/removing detector ID if creating/deleting detector, respectively)
-            console.log('setting value back to true');
+            // additionally, we close the details info so user can re-open to see updated detector info.
+            // this is kind of a hack since theres no mechanism for auto-updating the editor state based
+            // on expression output, by design. but by making user re-open, we can then pull the latest info
             setValue('adStateChanged', true);
+            setValue('showAdDetails', false);
           }}
         />
         {stateParams.enableAnomalyDetection && <DetectorPanel {...props} />}

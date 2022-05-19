@@ -66,4 +66,14 @@ export class AnomalyDetectionApiClient implements IAnomalyDetectionApiClient {
       body: JSON.stringify({ startTime: startTimeMillis, endTime: endTimeMillis }),
     });
   };
+
+  stopDetector = (detectorId: string, isHistorical: boolean): Promise<any> => {
+    const path = `${API_BASE_URL}/detectors/${detectorId}/stop/${isHistorical}`;
+    return this.http.post(path, {});
+  };
+
+  deleteDetector = (detectorId: string): Promise<any> => {
+    const path = `${API_BASE_URL}/detectors/${detectorId}`;
+    return this.http.delete(path, {});
+  };
 }

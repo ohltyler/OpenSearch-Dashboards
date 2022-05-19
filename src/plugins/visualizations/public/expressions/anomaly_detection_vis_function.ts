@@ -68,16 +68,41 @@ type Output = Promise<VisData>;
 
 const name = 'anomaly_detection';
 
-const handleAnomalyDetectorRequest = async (
+// TODO: the logic for stopping the RT/historical jobs can be separated out. Will need to handle more cases where user
+// may just toggle the RT/historical switches w/o necessarily deleting, in which case we want to
+// just stop the jobs
+const handleDeleteAnomalyDetectorRequest = async (visConfig: any) => {
+  const anomalyDetectionService = getAnomalyDetectionService();
+
+  // stop any real-time or historical jobs running before deleting
+  if (visConfig.realTimeAnomalyDetection) {
+    const stopRealTimeJobResponse = await anomalyDetectionService.stopDetector(
+      visConfig.detectorId
+    );
+    console.log('stop realtime job response: ', stopRealTimeJobResponse);
+  }
+
+  // NOTE: this may fail if there is no running historical job. It is much more likely that any
+  // historical job has finished running and there is nothing to stop. Figure out how to cleanly
+  // handle the differences, such that we still catch legitimate failures if it fails to stop
+  // an actual running historical job.
+  if (visConfig.historicalAnomalyDetection) {
+    const stopHistoricalJobResponse = await anomalyDetectionService.stopDetector(
+      visConfig.detectorId,
+      true
+    );
+    console.log('stop historical job response: ', stopHistoricalJobResponse);
+  }
+
+  const deleteDetectorResponse = await anomalyDetectionService.deleteDetector(visConfig.detectorId);
+
+  return deleteDetectorResponse;
+};
+
+const handleCreateAnomalyDetectorRequest = async (
   args: Arguments,
   getSavedObject: ExecutionContext['getSavedObject']
 ) => {
-  console.log('in handleAnomalyDetectorRequest');
-  const testGetDetectorResponse = await getAnomalyDetectionService().getDetector(
-    'ZpjY-38BAw1nCA43DbP4'
-  );
-  //console.log('TEST - get detector response: ', testGetDetectorResponse);
-
   const vis = JSON.parse(args.vis);
   const visConfig = get(vis, 'params', {});
   const aggConfigs = JSON.parse(args.aggConfigs);
@@ -102,7 +127,7 @@ const handleAnomalyDetectorRequest = async (
 
   const createDetectorResponse = await anomalyDetectionService.createDetector(detector);
   console.log('create detector response: ', createDetectorResponse);
-  const detectorId = get(createDetectorResponse, 'response.id', '');
+  const detectorId = get(createDetectorResponse, 'response.id', null);
 
   if (visConfig.realTimeAnomalyDetection) {
     console.log('kicking off RT AD job');
@@ -128,7 +153,7 @@ const handleAnomalyDetectorRequest = async (
     console.log('start historical response: ', startHistoricalDetectorJobResponse);
   }
 
-  return createDetectorResponse;
+  return detectorId;
 };
 
 export type ExpressionFunctionVisualizationAnomalyDetection = ExpressionFunctionDefinition<
@@ -183,75 +208,25 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
     // run historical job based on range in vis
     if (visConfig.enableAnomalyDetection && !visConfig.detectorId) {
       console.log('ad enabled - creating new detector via expression');
-
-      //   // Set basic search source info here
-      //   const indexPatterns = getIndexPatterns();
-      //   const searchService = getSearchService();
-      //   const indexPattern = await indexPatterns.get(args.index);
-      //   const searchSource = await searchService.searchSource.create();
-
-      //   searchSource.setField('index', indexPattern);
-      //   searchSource.setField('size', 0);
-      const response = await handleAnomalyDetectorRequest(args, getSavedObject);
-      const detectorId = get(response, 'response.id', null);
+      const detectorId = await handleCreateAnomalyDetectorRequest(args, getSavedObject);
       if (detectorId) {
-        //console.log('setting detector id in vis config: ', detectorId);
         visConfig = { ...visConfig, detectorId: detectorId };
       } else {
-        //console.log('detector already created or some other error happened when trying to create');
+        console.log('detector already created or some other error happened when trying to create');
       }
-
-      //console.log('vis config now: ', visConfig);
+      // if there's an existing detector ID but the user has disabled AD, then stop
+      // and delete the detector, disassociate detector ID
+    } else if (!visConfig.enableAnomalyDetection && visConfig.detectorId) {
+      console.log('ad disabled - deleting created detector');
+      const response = await handleDeleteAnomalyDetectorRequest(visConfig);
+      console.log('delete detector response: ', response);
+      visConfig.detectorId = null;
     } else {
-      console.log('ad disabled');
+      console.log('no need to create or delete anything');
     }
-    // const indexPatterns = getIndexPatterns();
-    // const { filterManager } = getQueryService();
-    // const searchService = getSearchService();
 
-    // const aggConfigsState = JSON.parse(args.aggConfigs);
-    // const indexPattern = await indexPatterns.get(args.index);
-    // const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigsState);
-
-    // // we should move searchSource creation inside courier request handler
-    // const searchSource = await searchService.searchSource.create();
-
-    // searchSource.setField('index', indexPattern);
-    // searchSource.setField('size', 0);
-
-    // const response = await handleCourierRequest({
-    //   searchSource,
-    //   aggs,
-    //   indexPattern,
-    //   timeRange: get(input, 'timeRange', undefined),
-    //   query: get(input, 'query', undefined) as any,
-    //   filters: get(input, 'filters', undefined),
-    //   timeFields: args.timeFields,
-    //   //   metricsAtAllLevels: args.metricsAtAllLevels,
-    //   //   partialRows: args.partialRows,
-    //   inspectorAdapters: inspectorAdapters as Adapters,
-    //   filterManager,
-    //   abortSignal: (abortSignal as unknown) as AbortSignal,
-    // });
-
-    // const table: OpenSearchDashboardsDatatable = {
-    //   type: 'opensearch_dashboards_datatable',
-    //   rows: response.rows,
-    //   columns: response.columns.map((column: any) => {
-    //     const cleanedColumn: OpenSearchDashboardsDatatableColumn = {
-    //       id: column.id,
-    //       name: column.name,
-    //       //meta: serializeAggConfig(column.aggConfig),
-    //     };
-    //     // if (args.includeFormatHints) {
-    //     //   cleanedColumn.formatHint = column.aggConfig.toSerializedFieldFormat();
-    //     // }
-    //     return cleanedColumn;
-    //   }),
-    // };
-
-    // For now, just return the table and vis config, such that this fn performs no actions other than pass the args
-    // through to the next one.
+    // Return updated visConfig with any new AD fields (detector ID, maybe detector state, etc.)
+    // TODO: update the dataTable with AD results / anomalies
     return {
       type: 'vis_data',
       dataTable: input,

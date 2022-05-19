@@ -49,4 +49,6 @@ export interface IAnomalyDetectionApiClient {
     startTimeMillis: number,
     endTimeMillis: number
   ) => Promise<any>;
+  stopDetector: (detectorId: string, isHistorical: boolean) => Promise<any>;
+  deleteDetector: (detectorId: string) => Promise<any>;
 }

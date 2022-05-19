@@ -74,6 +74,20 @@ export class AnomalyDetectionService {
   ) => {
     return this.apiClient.startHistoricalDetectorJob(detectorId, startTimeMillis, endTimeMillis);
   };
+
+  /**
+   * Stop real-time or historical anomaly detection job
+   */
+  stopDetector = async (detectorId: string, isHistorical: boolean = false) => {
+    return this.apiClient.stopDetector(detectorId, isHistorical);
+  };
+
+  /**
+   * Delete detector based on detector ID
+   */
+  deleteDetector = async (detectorId: string) => {
+    return this.apiClient.deleteDetector(detectorId);
+  };
 }
 
 export type AnomalyDetectionContract = PublicMethodsOf<AnomalyDetectionService>;

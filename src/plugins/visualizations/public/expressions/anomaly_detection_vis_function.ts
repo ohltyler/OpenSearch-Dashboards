@@ -54,6 +54,10 @@ import {
   getSearch,
   getAnomalyDetectionService,
 } from '../services';
+import {
+  getAnomalyDataRangeQuery,
+  buildParamsForGetAnomalyResultsWithDateRange,
+} from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
 
 interface Arguments {
   vis: string;
@@ -151,6 +155,33 @@ const handleCreateAnomalyDetectorRequest = async (
       endTimeMillis
     );
     console.log('start historical response: ', startHistoricalDetectorJobResponse);
+
+    // TODO: experiment with fetching results here. Just probably do a hard wait for few seconds then query.
+    // this is only to prove how to parse the results and add them to the data table / get them to show properly.
+    // Ideally this will need to be done some async way where results get auto-refreshed on the vis.
+
+    // get task id first
+    const taskId = get(startHistoricalDetectorJobResponse, 'response._id', null);
+    console.log('task id: ', taskId);
+
+    // make call to get results
+    setTimeout(async function () {
+      const anomalyDataRangeResponse = await anomalyDetectionService.searchResults(
+        getAnomalyDataRangeQuery(startTimeMillis, endTimeMillis, taskId)
+      );
+      console.log('get anomaly results response: ', anomalyDataRangeResponse);
+      const anomalyStartTime = get(anomalyDataRangeResponse, 'response.aggregations.min_end_time');
+      const anomalyEndTime = get(anomalyDataRangeResponse, 'response.aggregations.max_end_time');
+      console.log('data start time: ', anomalyStartTime);
+      console.log('anomaly end time: ', anomalyEndTime);
+      const anomalyResultsResponse = await anomalyDetectionService.getAnomalyResults(
+        taskId,
+        buildParamsForGetAnomalyResultsWithDateRange(anomalyStartTime, anomalyEndTime),
+        true
+      );
+      console.log('anomaly results response: ', anomalyResultsResponse);
+      // TODO: parse the results - see helper fns in AD repo probably
+    }, 5000);
   }
 
   return detectorId;

@@ -76,4 +76,14 @@ export class AnomalyDetectionApiClient implements IAnomalyDetectionApiClient {
     const path = `${API_BASE_URL}/detectors/${detectorId}`;
     return this.http.delete(path, {});
   };
+
+  searchResults = (requestBody: {}): Promise<any> => {
+    const path = `${API_BASE_URL}/detectors/results/_search`;
+    return this.http.post(path, { body: JSON.stringify(requestBody) });
+  };
+
+  getAnomalyResults = (id: string, queryParams: any, isHistorical: boolean) => {
+    const path = `${API_BASE_URL}/detectors/${id}/results/${isHistorical}`;
+    return this.http.get(path, { query: queryParams });
+  };
 }

@@ -88,6 +88,20 @@ export class AnomalyDetectionService {
   deleteDetector = async (detectorId: string) => {
     return this.apiClient.deleteDetector(detectorId);
   };
+
+  /**
+   * Search anomaly results with a generic query (e.g., get result start and end times)
+   */
+  searchResults = async (requestBody: {}) => {
+    return this.apiClient.searchResults(requestBody);
+  };
+
+  /**
+   * Get anomaly results
+   */
+  getAnomalyResults = async (id: string, queryParams: any, isHistorical: boolean) => {
+    return this.apiClient.getAnomalyResults(id, queryParams, isHistorical);
+  };
 }
 
 export type AnomalyDetectionContract = PublicMethodsOf<AnomalyDetectionService>;

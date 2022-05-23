@@ -30,4 +30,4 @@
  * GitHub history for details.
  */
 
-export { buildPointSeriesData } from './point_series';
+export { buildPointSeriesData, Dimension, Dimensions } from './point_series';

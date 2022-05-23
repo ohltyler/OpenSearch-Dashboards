@@ -30,7 +30,7 @@
  * GitHub history for details.
  */
 
-import { get, cloneDeep } from 'lodash';
+import { get, cloneDeep, isEmpty } from 'lodash';
 import { i18n } from '@osd/i18n';
 import {
   OpenSearchDashboardsDatatable,
@@ -54,6 +54,7 @@ import {
   getSearch,
   getAnomalyDetectionService,
 } from '../services';
+import { Dimension } from '../../../vis_type_vislib/public/vislib/helpers/point_series';
 import {
   getAnomalyDataRangeQuery,
   buildParamsForGetAnomalyResultsWithDateRange,
@@ -165,7 +166,6 @@ const handleStartHistoricalAnomalyDetection = async (args: Arguments, detectorId
 
   // get task id first
   const taskId = get(startHistoricalDetectorJobResponse, 'response._id', null);
-  console.log('task id: ', taskId);
 
   // adding manual wait time for now just to let a historical job finish and we can fetch the new results
   console.log('waiting 5 seconds...');
@@ -176,7 +176,6 @@ const handleStartHistoricalAnomalyDetection = async (args: Arguments, detectorId
   const anomalyDataRangeResponse = await getAnomalyDetectionService().searchResults(
     getAnomalyDataRangeQuery(startTimeMillis, endTimeMillis, taskId)
   );
-  console.log('get anomaly results date range response: ', anomalyDataRangeResponse);
   const anomalyStartTime = get(anomalyDataRangeResponse, 'response.aggregations.min_end_time');
   const anomalyEndTime = get(anomalyDataRangeResponse, 'response.aggregations.max_end_time');
   const anomalyResultsResponse = await getAnomalyDetectionService().getAnomalyResults(
@@ -184,18 +183,73 @@ const handleStartHistoricalAnomalyDetection = async (args: Arguments, detectorId
     buildParamsForGetAnomalyResultsWithDateRange(anomalyStartTime, anomalyEndTime, true),
     true
   );
-  console.log('anomaly results response: ', anomalyResultsResponse);
-  // TODO: parse the results - see helper fns in AD repo probably
   const anomalies = get(anomalyResultsResponse, 'response.results', []) as any[];
   return anomalies;
 };
 
 const appendAnomaliesToTable = (dataTable: OpenSearchDashboardsDatatable, anomalies: any[]) => {
+  const AD_COLUMN_ID = 'ad';
   const newDataTable = cloneDeep(dataTable);
   console.log('newDataTable (before): ', newDataTable);
   console.log('anomalies: ', anomalies);
 
+  // append a new column
+  newDataTable.columns = [
+    ...newDataTable.columns,
+    {
+      id: AD_COLUMN_ID,
+      name: 'Anomaly',
+    } as OpenSearchDashboardsDatatableColumn,
+  ];
+
+  // for each anomaly, find the correct time bucket it goes in and add the anomaly value there in the AD column
+  // reverse it since the initial results are returned in reverse sequential order
+  let rowIndex = 0;
+  anomalies.reverse().forEach((anomaly: any) => {
+    let found = false;
+    while (rowIndex < newDataTable.rows.length - 1 && !found) {
+      // assuming the first column in the rows data is the x-axis / timestamp values.
+      // probably need to find a better way to guarantee this
+      const startTs = newDataTable.rows[rowIndex][
+        Object.keys(newDataTable.rows[rowIndex])[0]
+      ] as number;
+      const endTs = newDataTable.rows[rowIndex + 1][
+        Object.keys(newDataTable.rows[rowIndex + 1])[0]
+      ] as number;
+
+      if (startTs <= anomaly.plotTime && endTs > anomaly.plotTime) {
+        // adding hacky soln of choosing the first y-series data to overlay anomaly spike
+        // this is strictly for making it easier to show correlation of the data w/ the anomaly
+        const firstYVal = newDataTable.rows[rowIndex][
+          Object.keys(newDataTable.rows[rowIndex])[1]
+        ] as number;
+        newDataTable.rows[rowIndex] = {
+          ...newDataTable.rows[rowIndex],
+          [AD_COLUMN_ID]: firstYVal,
+        };
+        found = true;
+      } else {
+        rowIndex++;
+      }
+    }
+  });
+
+  console.log('newDataTable (after): ', newDataTable);
   return newDataTable;
+};
+
+const appendAdDimensionToConfig = (visConfig: any, dataTable: OpenSearchDashboardsDatatable) => {
+  // the AD column is appended last. All previous dimensions are incremented sequentially starting from 0.
+  // So given 1 x-axis column (accessor=0), 1 y-axis metric column (accessor=1), and 1 y-axis AD column,
+  // the accessor should be 2 (column length -1).
+  const adAccessor = dataTable.columns.length - 1;
+  visConfig.dimensions.y.push({
+    accessor: adAccessor,
+    //aggType: 'avg',
+    format: {},
+    label: 'Anomaly',
+    params: {},
+  } as Dimension);
 };
 
 export type ExpressionFunctionVisualizationAnomalyDetection = ExpressionFunctionDefinition<
@@ -244,6 +298,8 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
     let visConfig = get(vis, 'params', {});
     console.log('visconfig: ', visConfig);
 
+    let dataTable = input;
+
     // if AD enabled and no detector ID: create a new detector via detector creation expression fn.
     // for detection jobs:
     // kick off real-time job
@@ -258,7 +314,13 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
         }
         if (visConfig.historicalAnomalyDetection) {
           const anomalies = await handleStartHistoricalAnomalyDetection(args, detectorId);
-          input = appendAnomaliesToTable(input, anomalies);
+
+          // append any found anomalies to the existing data table and vis dimension
+          if (!isEmpty(anomalies)) {
+            dataTable = appendAnomaliesToTable(dataTable, anomalies);
+            appendAdDimensionToConfig(visConfig, dataTable);
+            console.log('visconfig: ', visConfig);
+          }
         }
       } else {
         console.log('detector already created or some other error happened when trying to create');
@@ -278,7 +340,7 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
     // TODO: update the dataTable with AD results / anomalies
     return {
       type: 'vis_data',
-      dataTable: input,
+      dataTable: dataTable,
       visConfig: JSON.stringify(visConfig),
     };
   },

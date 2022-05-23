@@ -30,7 +30,7 @@
  * GitHub history for details.
  */
 
-import { get, hasIn } from 'lodash';
+import { get, cloneDeep } from 'lodash';
 import { i18n } from '@osd/i18n';
 import {
   OpenSearchDashboardsDatatable,
@@ -131,60 +131,71 @@ const handleCreateAnomalyDetectorRequest = async (
 
   const createDetectorResponse = await anomalyDetectionService.createDetector(detector);
   console.log('create detector response: ', createDetectorResponse);
-  const detectorId = get(createDetectorResponse, 'response.id', null);
+  return get(createDetectorResponse, 'response.id', null);
+};
 
-  if (visConfig.realTimeAnomalyDetection) {
-    console.log('kicking off RT AD job');
-    const startRealTimeDetectorJobResponse = await anomalyDetectionService.startRealTimeDetectorJob(
-      detectorId
-    );
-    console.log('start real-time response: ', startRealTimeDetectorJobResponse);
-  }
+const handleStartRealTimeAnomalyDetection = async (detectorId: string) => {
+  console.log('kicking off RT AD job');
+  const startRealTimeDetectorJobResponse = await getAnomalyDetectionService().startRealTimeDetectorJob(
+    detectorId
+  );
+  console.log('start real-time response: ', startRealTimeDetectorJobResponse);
+};
 
-  if (visConfig.historicalAnomalyDetection) {
-    console.log('kicking off historical AD job');
+const handleStartHistoricalAnomalyDetection = async (args: Arguments, detectorId: string) => {
+  console.log('kicking off historical AD job');
 
-    // right now we pull the time range from the vis config. the range as stored in different agg configs (e.g., x-axis date-histogram)
-    // may be stored in string-form and require some more conversion (e.g., 'now-7d', 'now').
-    const timeRange = get(vis, 'params.dimensions.x.params.bounds', {});
-    const startTimeMillis = Date.parse(get(timeRange, 'min', ''));
-    const endTimeMillis = Date.parse(get(timeRange, 'max', ''));
-    const startHistoricalDetectorJobResponse = await anomalyDetectionService.startHistoricalDetectorJob(
-      detectorId,
-      startTimeMillis,
-      endTimeMillis
-    );
-    console.log('start historical response: ', startHistoricalDetectorJobResponse);
+  const vis = JSON.parse(args.vis);
 
-    // TODO: experiment with fetching results here. Just probably do a hard wait for few seconds then query.
-    // this is only to prove how to parse the results and add them to the data table / get them to show properly.
-    // Ideally this will need to be done some async way where results get auto-refreshed on the vis.
+  // right now we pull the time range from the vis config. the range as stored in different agg configs (e.g., x-axis date-histogram)
+  // may be stored in string-form and require some more conversion (e.g., 'now-7d', 'now').
+  const timeRange = get(vis, 'params.dimensions.x.params.bounds', {});
+  const startTimeMillis = Date.parse(get(timeRange, 'min', ''));
+  const endTimeMillis = Date.parse(get(timeRange, 'max', ''));
+  const startHistoricalDetectorJobResponse = await getAnomalyDetectionService().startHistoricalDetectorJob(
+    detectorId,
+    startTimeMillis,
+    endTimeMillis
+  );
+  console.log('start historical response: ', startHistoricalDetectorJobResponse);
 
-    // get task id first
-    const taskId = get(startHistoricalDetectorJobResponse, 'response._id', null);
-    console.log('task id: ', taskId);
+  // TODO: experiment with fetching results here. Just probably do a hard wait for few seconds then query.
+  // this is only to prove how to parse the results and add them to the data table / get them to show properly.
+  // Ideally this will need to be done some async way where results get auto-refreshed on the vis.
 
-    // make call to get results
-    setTimeout(async function () {
-      const anomalyDataRangeResponse = await anomalyDetectionService.searchResults(
-        getAnomalyDataRangeQuery(startTimeMillis, endTimeMillis, taskId)
-      );
-      console.log('get anomaly results response: ', anomalyDataRangeResponse);
-      const anomalyStartTime = get(anomalyDataRangeResponse, 'response.aggregations.min_end_time');
-      const anomalyEndTime = get(anomalyDataRangeResponse, 'response.aggregations.max_end_time');
-      console.log('data start time: ', anomalyStartTime);
-      console.log('anomaly end time: ', anomalyEndTime);
-      const anomalyResultsResponse = await anomalyDetectionService.getAnomalyResults(
-        taskId,
-        buildParamsForGetAnomalyResultsWithDateRange(anomalyStartTime, anomalyEndTime),
-        true
-      );
-      console.log('anomaly results response: ', anomalyResultsResponse);
-      // TODO: parse the results - see helper fns in AD repo probably
-    }, 5000);
-  }
+  // get task id first
+  const taskId = get(startHistoricalDetectorJobResponse, 'response._id', null);
+  console.log('task id: ', taskId);
 
-  return detectorId;
+  // adding manual wait time for now just to let a historical job finish and we can fetch the new results
+  console.log('waiting 5 seconds...');
+  await new Promise((r) => setTimeout(r, 5000));
+  console.log('done');
+
+  // get the narrowed-down date range to search on
+  const anomalyDataRangeResponse = await getAnomalyDetectionService().searchResults(
+    getAnomalyDataRangeQuery(startTimeMillis, endTimeMillis, taskId)
+  );
+  console.log('get anomaly results date range response: ', anomalyDataRangeResponse);
+  const anomalyStartTime = get(anomalyDataRangeResponse, 'response.aggregations.min_end_time');
+  const anomalyEndTime = get(anomalyDataRangeResponse, 'response.aggregations.max_end_time');
+  const anomalyResultsResponse = await getAnomalyDetectionService().getAnomalyResults(
+    taskId,
+    buildParamsForGetAnomalyResultsWithDateRange(anomalyStartTime, anomalyEndTime, true),
+    true
+  );
+  console.log('anomaly results response: ', anomalyResultsResponse);
+  // TODO: parse the results - see helper fns in AD repo probably
+  const anomalies = get(anomalyResultsResponse, 'response.results', []) as any[];
+  return anomalies;
+};
+
+const appendAnomaliesToTable = (dataTable: OpenSearchDashboardsDatatable, anomalies: any[]) => {
+  const newDataTable = cloneDeep(dataTable);
+  console.log('newDataTable (before): ', newDataTable);
+  console.log('anomalies: ', anomalies);
+
+  return newDataTable;
 };
 
 export type ExpressionFunctionVisualizationAnomalyDetection = ExpressionFunctionDefinition<
@@ -242,6 +253,13 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
       const detectorId = await handleCreateAnomalyDetectorRequest(args, getSavedObject);
       if (detectorId) {
         visConfig = { ...visConfig, detectorId: detectorId };
+        if (visConfig.realTimeAnomalyDetection) {
+          await handleStartRealTimeAnomalyDetection(detectorId);
+        }
+        if (visConfig.historicalAnomalyDetection) {
+          const anomalies = await handleStartHistoricalAnomalyDetection(args, detectorId);
+          input = appendAnomaliesToTable(input, anomalies);
+        }
       } else {
         console.log('detector already created or some other error happened when trying to create');
       }

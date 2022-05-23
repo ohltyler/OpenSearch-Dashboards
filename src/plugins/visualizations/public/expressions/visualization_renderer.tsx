@@ -54,7 +54,7 @@ export const visualization = () => ({
     vis.eventsSubject = { next: handlers.event };
 
     if (visConfig.adStateChanged === true) {
-      console.log('pushing new event with detector id: ', visConfig.detectorId);
+      //console.log('pushing new event with detector id: ', visConfig.detectorId);
       handlers.event({ name: 'anomalyDetection', data: visConfig.detectorId });
     }
 

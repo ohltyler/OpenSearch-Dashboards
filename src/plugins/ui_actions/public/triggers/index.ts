@@ -38,4 +38,5 @@ export * from './value_click_trigger';
 export * from './apply_filter_trigger';
 export * from './visualize_field_trigger';
 export * from './visualize_geo_field_trigger';
+export * from './create_detector_trigger';
 export * from './default_trigger';

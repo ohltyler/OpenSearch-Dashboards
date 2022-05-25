@@ -63,6 +63,8 @@ export {
   visualizeFieldTrigger,
   VISUALIZE_GEO_FIELD_TRIGGER,
   visualizeGeoFieldTrigger,
+  CREATE_DETECTOR_TRIGGER,
+  createDetectorTrigger,
 } from './triggers';
 export {
   TriggerContextMapping,
@@ -73,6 +75,7 @@ export {
   ACTION_VISUALIZE_FIELD,
   ACTION_VISUALIZE_GEO_FIELD,
   ACTION_VISUALIZE_LENS_FIELD,
+  ACTION_CREATE_DETECTOR,
 } from './types';
 export {
   ActionByType,

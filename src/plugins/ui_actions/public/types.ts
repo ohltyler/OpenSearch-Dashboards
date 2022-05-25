@@ -39,6 +39,7 @@ import {
   VISUALIZE_FIELD_TRIGGER,
   VISUALIZE_GEO_FIELD_TRIGGER,
   DEFAULT_TRIGGER,
+  CREATE_DETECTOR_TRIGGER,
 } from './triggers';
 import type { RangeSelectContext, ValueClickContext } from '../../embeddable/public';
 import type { ApplyGlobalFilterActionContext } from '../../data/public';
@@ -65,12 +66,15 @@ export interface TriggerContextMapping {
   [APPLY_FILTER_TRIGGER]: ApplyGlobalFilterActionContext;
   [VISUALIZE_FIELD_TRIGGER]: VisualizeFieldContext;
   [VISUALIZE_GEO_FIELD_TRIGGER]: VisualizeFieldContext;
+  // TODO: adjust this context to be more specific probably
+  [CREATE_DETECTOR_TRIGGER]: TriggerContext;
 }
 
 const DEFAULT_ACTION = '';
 export const ACTION_VISUALIZE_FIELD = 'ACTION_VISUALIZE_FIELD';
 export const ACTION_VISUALIZE_GEO_FIELD = 'ACTION_VISUALIZE_GEO_FIELD';
 export const ACTION_VISUALIZE_LENS_FIELD = 'ACTION_VISUALIZE_LENS_FIELD';
+export const ACTION_CREATE_DETECTOR = 'ACTION_CREATE_DETECTOR';
 export type ActionType = keyof ActionContextMapping;
 
 export interface ActionContextMapping {
@@ -78,4 +82,6 @@ export interface ActionContextMapping {
   [ACTION_VISUALIZE_FIELD]: VisualizeFieldContext;
   [ACTION_VISUALIZE_GEO_FIELD]: VisualizeFieldContext;
   [ACTION_VISUALIZE_LENS_FIELD]: VisualizeFieldContext;
+  // TODO: adjust this context to be more specific probably
+  [ACTION_CREATE_DETECTOR]: BaseContext;
 }

@@ -29,24 +29,33 @@
  * Modifications Copyright OpenSearch Contributors. See
  * GitHub history for details.
  */
+import { createAction, ACTION_CREATE_DETECTOR } from '../../../ui_actions/public';
+// import {
+//   getApplication,
+//   getUISettings,
+//   getIndexPatterns,
+//   getQueryService,
+//   getShareService,
+// } from '../services';
 
-import {
-  APPLY_FILTER_TRIGGER,
-  SELECT_RANGE_TRIGGER,
-  VALUE_CLICK_TRIGGER,
-  CREATE_DETECTOR_TRIGGER,
-} from '../../../ui_actions/public';
+export const createDetectorAction = createAction<typeof ACTION_CREATE_DETECTOR>({
+  type: ACTION_CREATE_DETECTOR,
+  id: ACTION_CREATE_DETECTOR,
+  //   shouldAutoExecute: async () => true,
+  //   getDisplayName: () =>
+  //     i18n.translate('visualize.discover.visualizeFieldLabel', {
+  //       defaultMessage: 'Visualize field',
+  //     }),
+  //   isCompatible: async () => !!getApplication().capabilities.visualize.show,
 
-export interface VisEventToTrigger {
-  ['applyFilter']: typeof APPLY_FILTER_TRIGGER;
-  ['brush']: typeof SELECT_RANGE_TRIGGER;
-  ['filter']: typeof VALUE_CLICK_TRIGGER;
-  ['anomalyDetection']: typeof CREATE_DETECTOR_TRIGGER;
-}
-
-export const VIS_EVENT_TO_TRIGGER: VisEventToTrigger = {
-  applyFilter: APPLY_FILTER_TRIGGER,
-  brush: SELECT_RANGE_TRIGGER,
-  filter: VALUE_CLICK_TRIGGER,
-  anomalyDetection: CREATE_DETECTOR_TRIGGER,
-};
+  // TODO: make the context typesafe
+  execute: async (context: { vis: { params: any }; detectorId: string }) => {
+    console.log('executing create detector action');
+    console.log('context: ', context);
+    context.vis.params = {
+      ...context.vis.params,
+      detectorId: context.detectorId,
+      adStateChanged: false,
+    };
+  },
+});

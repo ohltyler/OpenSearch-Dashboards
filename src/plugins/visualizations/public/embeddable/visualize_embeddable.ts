@@ -330,15 +330,33 @@ export class VisualizeEmbeddable
 
         // if there was some change in AD state: update it.
         // also set the ad state changed back to false.
-        if (event.name === 'anomalyDetection') {
-          //console.log('updating vis with detector id in visualize_embeddable: ', event.data);
-          this.vis.params = {
-            ...this.vis.params,
-            detectorId: event.data,
-            adStateChanged: false,
-          };
-          return;
-        }
+        // there's a trigger clause down below - we are ignoring that for now since we can first try to get it to work here,
+        // then distribute to the action later on.
+        // if (event.name === 'anomalyDetection') {
+        //   console.log('updating vis with detector id in visualize_embeddable: ', event.data);
+        //   this.vis.params = {
+        //     ...this.vis.params,
+        //     detectorId: event.data,
+        //     adStateChanged: false,
+        //   };
+
+        //   // this triggers the 'changing uiState on <Visualization/> is not supported!' error. only when refreshing
+        //   // an existing vis. if starting from fresh creation, it's ok. but still doesn't trigger anything in the editor
+        //   // const newVis = this.vis.clone();
+        //   // this.vis = newVis;
+
+        //   // this works to reload the page - but the data isn't persisted before so any detector info is lost
+        //   // if (!isEmpty(event.data)) {
+        //   //   window.location.reload(false);
+        //   // }
+
+        //   return;
+        // }
+
+        // // swapping to see if i can trigger the ui action
+        // if (event.name === 'anomalyDetection') {
+        //   event.name = 'applyFilter';
+        // }
 
         if (!this.input.disableTriggers) {
           const triggerId = get(VIS_EVENT_TO_TRIGGER, event.name, VIS_EVENT_TO_TRIGGER.filter);
@@ -349,6 +367,11 @@ export class VisualizeEmbeddable
               embeddable: this,
               timeFieldName: this.vis.data.indexPattern?.timeFieldName!,
               ...event.data,
+            };
+          } else if (triggerId === VIS_EVENT_TO_TRIGGER.anomalyDetection) {
+            context = {
+              vis: this.vis,
+              detectorId: event.data,
             };
           } else {
             context = {

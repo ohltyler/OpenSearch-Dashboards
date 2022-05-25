@@ -38,6 +38,7 @@ import {
   applyFilterTrigger,
   visualizeFieldTrigger,
   visualizeGeoFieldTrigger,
+  createDetectorTrigger,
 } from './triggers';
 
 export type UiActionsSetup = Pick<
@@ -63,6 +64,7 @@ export class UiActionsPlugin implements Plugin<UiActionsSetup, UiActionsStart> {
     this.service.registerTrigger(applyFilterTrigger);
     this.service.registerTrigger(visualizeFieldTrigger);
     this.service.registerTrigger(visualizeGeoFieldTrigger);
+    this.service.registerTrigger(createDetectorTrigger);
     return this.service;
   }
 

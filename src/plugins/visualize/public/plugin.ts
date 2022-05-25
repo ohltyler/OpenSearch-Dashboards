@@ -62,7 +62,11 @@ import { DEFAULT_APP_CATEGORIES } from '../../../core/public';
 import { SavedObjectsStart } from '../../saved_objects/public';
 import { EmbeddableStart } from '../../embeddable/public';
 import { DashboardStart } from '../../dashboard/public';
-import { UiActionsSetup, VISUALIZE_FIELD_TRIGGER } from '../../ui_actions/public';
+import {
+  UiActionsSetup,
+  VISUALIZE_FIELD_TRIGGER,
+  CREATE_DETECTOR_TRIGGER,
+} from '../../ui_actions/public';
 import {
   setUISettings,
   setApplication,
@@ -71,6 +75,7 @@ import {
   setShareService,
 } from './services';
 import { visualizeFieldAction } from './actions/visualize_field_action';
+import { createDetectorAction } from './actions/create_detector_action';
 import { createVisualizeUrlGenerator } from './url_generator';
 
 export interface VisualizePluginStartDependencies {
@@ -149,6 +154,7 @@ export class VisualizePlugin
     }
     setUISettings(core.uiSettings);
     uiActions.addTriggerAction(VISUALIZE_FIELD_TRIGGER, visualizeFieldAction);
+    uiActions.addTriggerAction(CREATE_DETECTOR_TRIGGER, createDetectorAction);
 
     core.application.register({
       id: 'visualize',

@@ -30,23 +30,16 @@
  * GitHub history for details.
  */
 
-import {
-  APPLY_FILTER_TRIGGER,
-  SELECT_RANGE_TRIGGER,
-  VALUE_CLICK_TRIGGER,
-  CREATE_DETECTOR_TRIGGER,
-} from '../../../ui_actions/public';
+import { i18n } from '@osd/i18n';
+import { Trigger } from '.';
 
-export interface VisEventToTrigger {
-  ['applyFilter']: typeof APPLY_FILTER_TRIGGER;
-  ['brush']: typeof SELECT_RANGE_TRIGGER;
-  ['filter']: typeof VALUE_CLICK_TRIGGER;
-  ['anomalyDetection']: typeof CREATE_DETECTOR_TRIGGER;
-}
-
-export const VIS_EVENT_TO_TRIGGER: VisEventToTrigger = {
-  applyFilter: APPLY_FILTER_TRIGGER,
-  brush: SELECT_RANGE_TRIGGER,
-  filter: VALUE_CLICK_TRIGGER,
-  anomalyDetection: CREATE_DETECTOR_TRIGGER,
+export const CREATE_DETECTOR_TRIGGER = 'CREATE_DETECTOR_TRIGGER';
+export const createDetectorTrigger: Trigger<'CREATE_DETECTOR_TRIGGER'> = {
+  id: CREATE_DETECTOR_TRIGGER,
+  title: i18n.translate('uiActions.triggers.createDetectorTrigger', {
+    defaultMessage: 'Detector creation',
+  }),
+  description: i18n.translate('uiActions.triggers.createDetectorDescription', {
+    defaultMessage: 'Creating a detector via Visualization',
+  }),
 };

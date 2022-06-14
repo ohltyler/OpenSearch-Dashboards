@@ -85,6 +85,9 @@ import {
   ACTION_CLONE_PANEL,
   ACTION_EXPAND_PANEL,
   ACTION_REPLACE_PANEL,
+  ACTION_ANOMALY_DETECTION,
+  AnomalyDetectionAction,
+  AnomalyDetectionActionContext,
   ClonePanelAction,
   ClonePanelActionContext,
   createDashboardContainerByValueRenderer,
@@ -189,6 +192,7 @@ declare module '../../../plugins/ui_actions/public' {
     [ACTION_ADD_TO_LIBRARY]: AddToLibraryActionContext;
     [ACTION_UNLINK_FROM_LIBRARY]: UnlinkFromLibraryActionContext;
     [ACTION_LIBRARY_NOTIFICATION]: LibraryNotificationActionContext;
+    [ACTION_ANOMALY_DETECTION]: AnomalyDetectionActionContext;
   }
 }
 
@@ -463,6 +467,13 @@ export class DashboardPlugin
     const clonePanelAction = new ClonePanelAction(core);
     uiActions.registerAction(clonePanelAction);
     uiActions.attachAction(CONTEXT_MENU_TRIGGER, clonePanelAction.id);
+
+    // TODO: add AD action, only if AD plugin found. For now leave as a required plugin until
+    // the design for handling optional plugins is finalized.
+    // TODO: decide if this should be available in edit mode, non-edit mode, or both
+    const anomalyDetectionAction = new AnomalyDetectionAction();
+    uiActions.registerAction(anomalyDetectionAction);
+    uiActions.attachAction(CONTEXT_MENU_TRIGGER, anomalyDetectionAction.id);
 
     if (this.dashboardFeatureFlagConfig?.allowByValueEmbeddables) {
       const addToLibraryAction = new AddToLibraryAction();

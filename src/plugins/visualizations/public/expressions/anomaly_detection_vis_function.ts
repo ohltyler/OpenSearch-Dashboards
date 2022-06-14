@@ -84,7 +84,7 @@ const handleDeleteAnomalyDetectorRequest = async (visConfig: any) => {
     const stopRealTimeJobResponse = await anomalyDetectionService.stopDetector(
       visConfig.detectorId
     );
-    console.log('stop realtime job response: ', stopRealTimeJobResponse);
+    //console.log('stop realtime job response: ', stopRealTimeJobResponse);
   }
 
   // NOTE: this may fail if there is no running historical job. It is much more likely that any
@@ -96,7 +96,7 @@ const handleDeleteAnomalyDetectorRequest = async (visConfig: any) => {
       visConfig.detectorId,
       true
     );
-    console.log('stop historical job response: ', stopHistoricalJobResponse);
+    //console.log('stop historical job response: ', stopHistoricalJobResponse);
   }
 
   const deleteDetectorResponse = await anomalyDetectionService.deleteDetector(visConfig.detectorId);
@@ -131,7 +131,7 @@ const handleCreateAnomalyDetectorRequest = async (
   );
 
   const createDetectorResponse = await anomalyDetectionService.createDetector(detector);
-  console.log('create detector response: ', createDetectorResponse);
+  //console.log('create detector response: ', createDetectorResponse);
   return get(createDetectorResponse, 'response.id', null);
 };
 
@@ -140,7 +140,7 @@ const handleStartRealTimeAnomalyDetection = async (detectorId: string) => {
   const startRealTimeDetectorJobResponse = await getAnomalyDetectionService().startRealTimeDetectorJob(
     detectorId
   );
-  console.log('start real-time response: ', startRealTimeDetectorJobResponse);
+  //console.log('start real-time response: ', startRealTimeDetectorJobResponse);
 };
 
 const handleStartHistoricalAnomalyDetection = async (args: Arguments, detectorId: string) => {
@@ -158,7 +158,7 @@ const handleStartHistoricalAnomalyDetection = async (args: Arguments, detectorId
     startTimeMillis,
     endTimeMillis
   );
-  console.log('start historical response: ', startHistoricalDetectorJobResponse);
+  //console.log('start historical response: ', startHistoricalDetectorJobResponse);
 
   // TODO: experiment with fetching results here. Just probably do a hard wait for few seconds then query.
   // this is only to prove how to parse the results and add them to the data table / get them to show properly.
@@ -330,7 +330,7 @@ export const visualizationAnomalyDetectionFunction = (): ExpressionFunctionVisua
     } else if (!visConfig.enableAnomalyDetection && visConfig.detectorId) {
       console.log('ad disabled - deleting created detector');
       const response = await handleDeleteAnomalyDetectorRequest(visConfig);
-      console.log('delete detector response: ', response);
+      //console.log('delete detector response: ', response);
       visConfig.detectorId = null;
     } else {
       console.log('no need to create or delete anything');

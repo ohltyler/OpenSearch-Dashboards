@@ -227,6 +227,7 @@ export class EmbeddablePanel extends React.Component<Props, State> {
 
     const title = this.props.embeddable.getTitle();
     const headerId = this.generateId();
+    console.log('rendering embeddable_panel');
     return (
       <EuiPanel
         className={classes}
@@ -289,6 +290,13 @@ export class EmbeddablePanel extends React.Component<Props, State> {
   };
 
   private getActionContextMenuPanel = async () => {
+    // getActions calls the action service's getTriggerCompatibleActions() fn, which takese the current trigger,
+    // fetches its associated actions, and then returns any actions compatible based on the context. In this case,
+    // the context is the embeddable, such that only compatible actions with the current underlying vis in the
+    // embeddable will be returned (e.g., expand to full screen action for a line vis)
+
+    // to see all of the different available actions, see src/plugins/dashboard/public/plugin.ts where the actions
+    // are registered. Currently, the full-screen action is registered in setup phase, rest are registered in start phase
     let regularActions = await this.props.getActions(CONTEXT_MENU_TRIGGER, {
       embeddable: this.props.embeddable,
     });
@@ -340,6 +348,9 @@ export class EmbeddablePanel extends React.Component<Props, State> {
       ),
     ];
 
+    // Regular actions are tied to the specific vis in the embeddable - for example, a line vis supports expanding to full screen while others
+    // may not.
+    // Extra actions are generic actions that apply to all embeddables, regardless of the underlying vis type
     const sortedActions = [...regularActions, ...extraActions].sort(sortByOrderField);
 
     return await buildContextMenuForActions({

@@ -60,3 +60,8 @@ export {
   LibraryNotificationAction,
   ACTION_LIBRARY_NOTIFICATION,
 } from './library_notification_action';
+export {
+  AnomalyDetectionAction,
+  AnomalyDetectionActionContext,
+  ACTION_ANOMALY_DETECTION,
+} from './anomaly_detection_action';

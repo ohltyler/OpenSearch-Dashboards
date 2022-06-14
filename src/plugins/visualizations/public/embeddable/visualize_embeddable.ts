@@ -169,6 +169,7 @@ export class VisualizeEmbeddable
 
     this.subscriptions.push(
       Rx.merge(this.getOutput$(), this.getInput$()).subscribe(() => {
+        console.log('inputs or outputs changed');
         this.handleChanges();
       })
     );
@@ -234,6 +235,7 @@ export class VisualizeEmbeddable
   }
 
   public async handleChanges() {
+    console.log('in handleChanges()');
     this.transferCustomizationsToUiState();
 
     let dirty = false;

@@ -157,6 +157,9 @@ export async function buildContextMenuForActions({
   const promises = actions.map(async (item) => {
     const { action } = item;
     const context: ActionExecutionContext<object> = { ...item.context, trigger: item.trigger };
+    // each action implements an isCompatible fn based on context, which returns a boolean if this action
+    // can be / should be used or not. For example, the clone or delete panel actions are not available unless the
+    // dashboard is in edit mode
     const isCompatible = await item.action.isCompatible(context);
     if (!isCompatible) return;
     let parentPanel = '';
@@ -187,6 +190,8 @@ export async function buildContextMenuForActions({
         parentPanel = currentPanel;
       }
     }
+
+    // here is where the filtered items get added to the main menu of the panel
     panels[parentPanel || 'mainMenu'].items!.push({
       name: action.MenuItem
         ? React.createElement(uiToReactComponent(action.MenuItem), { context })

@@ -43,12 +43,18 @@ import React from 'react';
 import { Subscription } from 'rxjs';
 import ReactGridLayout, { Layout } from 'react-grid-layout';
 import { GridData } from '../../../../common';
-import { ViewMode, EmbeddableChildPanel, EmbeddableStart } from '../../../embeddable_plugin';
+import {
+  ViewMode,
+  EmbeddableChildPanel,
+  EmbeddableStart,
+  IEmbeddable,
+} from '../../../embeddable_plugin';
 import { DASHBOARD_GRID_COLUMN_COUNT, DASHBOARD_GRID_HEIGHT } from '../dashboard_constants';
 import { DashboardPanelState } from '../types';
 import { withOpenSearchDashboards } from '../../../../../opensearch_dashboards_react/public';
 import { DashboardContainerInput } from '../dashboard_container';
 import { DashboardContainer, DashboardReactContextValue } from '../dashboard_container';
+import { AnomalyDetectionFlyout } from '../flyout';
 
 let lastValidGridSize = 0;
 
@@ -140,6 +146,9 @@ interface State {
   viewMode: ViewMode;
   useMargins: boolean;
   expandedPanelId?: string;
+  adFlyoutOpen?: boolean;
+  selectedAdEmbeddable?: IEmbeddable;
+  containerInput?: DashboardContainerInput;
 }
 
 interface PanelLayout extends Layout {
@@ -164,6 +173,9 @@ class DashboardGridUi extends React.Component<DashboardGridProps, State> {
       viewMode: this.props.container.getInput().viewMode,
       useMargins: this.props.container.getInput().useMargins,
       expandedPanelId: this.props.container.getInput().expandedPanelId,
+      adFlyoutOpen: this.props.container.getInput().adFlyoutOpen,
+      selectedAdEmbeddable: this.props.container.getInput().selectedAdEmbeddable,
+      containerInput: this.props.container.getInput(),
     };
   }
 
@@ -200,6 +212,9 @@ class DashboardGridUi extends React.Component<DashboardGridProps, State> {
             viewMode: input.viewMode,
             useMargins: input.useMargins,
             expandedPanelId: input.expandedPanelId,
+            adFlyoutOpen: input.adFlyoutOpen,
+            selectedAdEmbeddable: input.selectedAdEmbeddable,
+            containerInput: input,
           });
         }
       });
@@ -301,16 +316,32 @@ class DashboardGridUi extends React.Component<DashboardGridProps, State> {
 
     const { viewMode } = this.state;
     const isViewMode = viewMode === ViewMode.VIEW;
+
+    console.log('selected AD embeddable: ', this.state.selectedAdEmbeddable);
+    console.log('overall container input: ', this.state.containerInput);
+
     return (
-      <ResponsiveSizedGrid
-        isViewMode={isViewMode}
-        layout={this.buildLayoutFromPanels()}
-        onLayoutChange={this.onLayoutChange}
-        maximizedPanelId={this.state.expandedPanelId}
-        useMargins={this.state.useMargins}
-      >
-        {this.renderPanels()}
-      </ResponsiveSizedGrid>
+      <div>
+        {this.state.adFlyoutOpen ? (
+          <AnomalyDetectionFlyout
+            container={this.props.container}
+            containerInput={this.state.containerInput}
+            //embeddable={this.state.selectedAdEmbeddable}
+            filters={this.state.containerInput?.filters}
+            query={this.state.containerInput?.query}
+            timeRange={this.state.containerInput?.timeRange}
+          />
+        ) : null}
+        <ResponsiveSizedGrid
+          isViewMode={isViewMode}
+          layout={this.buildLayoutFromPanels()}
+          onLayoutChange={this.onLayoutChange}
+          maximizedPanelId={this.state.expandedPanelId}
+          useMargins={this.state.useMargins}
+        >
+          {this.renderPanels()}
+        </ResponsiveSizedGrid>
+      </div>
     );
   }
 }

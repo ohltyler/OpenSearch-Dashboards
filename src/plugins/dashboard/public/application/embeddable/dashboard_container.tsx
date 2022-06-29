@@ -68,6 +68,8 @@ export interface DashboardContainerInput extends ContainerInput {
   timeRange: TimeRange;
   refreshConfig?: RefreshInterval;
   expandedPanelId?: string;
+  adFlyoutOpen?: boolean;
+  selectedAdEmbeddable?: IEmbeddable;
   useMargins: boolean;
   title: string;
   description?: string;

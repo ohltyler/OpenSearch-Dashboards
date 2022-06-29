@@ -4,6 +4,7 @@
   "requiredPlugins": [
     "data",
     "embeddable",
+    "expressions",
     "inspector",
     "opensearchDashboardsLegacy",
     "urlForwarding",

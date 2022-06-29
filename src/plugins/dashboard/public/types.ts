@@ -104,6 +104,7 @@ export interface DashboardAppState {
   viewMode: ViewMode;
   expandedPanelId?: string;
   savedQuery?: string;
+  //adFlyoutOpen?: boolean;
 }
 
 export type DashboardAppStateDefaults = DashboardAppState & {

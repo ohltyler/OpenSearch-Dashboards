@@ -80,6 +80,8 @@ import {
 } from '../../opensearch_dashboards_legacy/public';
 import { FeatureCatalogueCategory, HomePublicPluginSetup } from '../../../plugins/home/public';
 import { DEFAULT_APP_CATEGORIES } from '../../../core/public';
+import { ExpressionsSetup, ExpressionsStart } from '../../expressions/public';
+import { setExpressions } from './services';
 
 import {
   ACTION_CLONE_PANEL,
@@ -115,6 +117,7 @@ import {
   DashboardUrlGeneratorState,
 } from './url_generator';
 import { createSavedDashboardLoader } from './saved_dashboards';
+import { createAnomalyDetectorFunction } from './application/expressions';
 import { DashboardConstants } from './dashboard_constants';
 import { addEmbeddableToDashboardUrl } from './url_utils/url_helper';
 import { PlaceholderEmbeddableFactory } from './application/embeddable/placeholder';
@@ -146,6 +149,7 @@ interface SetupDependencies {
   share?: SharePluginSetup;
   uiActions: UiActionsSetup;
   usageCollection?: UsageCollectionSetup;
+  expressions: ExpressionsSetup;
 }
 
 interface StartDependencies {
@@ -159,6 +163,7 @@ interface StartDependencies {
   share?: SharePluginStart;
   uiActions: UiActionsStart;
   savedObjects: SavedObjectsStart;
+  expressions: ExpressionsStart;
 }
 
 export type DashboardSetup = void;
@@ -210,11 +215,25 @@ export class DashboardPlugin
 
   public setup(
     core: CoreSetup<StartDependencies, DashboardStart>,
-    { share, uiActions, embeddable, home, urlForwarding, data, usageCollection }: SetupDependencies
+    {
+      share,
+      uiActions,
+      embeddable,
+      home,
+      urlForwarding,
+      data,
+      usageCollection,
+      expressions,
+    }: SetupDependencies
   ): DashboardSetup {
     this.dashboardFeatureFlagConfig = this.initializerContext.config.get<
       DashboardFeatureFlagConfig
     >();
+
+    // TODO: register the AD functions and renderers in the setup phase here
+    expressions.registerFunction(createAnomalyDetectorFunction);
+    // expressions.registerRenderer(<renderer>)
+
     const expandPanelAction = new ExpandPanelAction();
     uiActions.registerAction(expandPanelAction);
     uiActions.attachAction(CONTEXT_MENU_TRIGGER, expandPanelAction.id);
@@ -268,6 +287,7 @@ export class DashboardPlugin
         SavedObjectFinder: getSavedObjectFinder(coreStart.savedObjects, coreStart.uiSettings),
         ExitFullScreenButton,
         uiActions: deps.uiActions,
+        expressions: deps.expressions,
       };
     };
 
@@ -451,7 +471,11 @@ export class DashboardPlugin
       uiActions,
       data: { indexPatterns, search },
       embeddable,
+      expressions,
     } = plugins;
+
+    // Setting the expressions service to use later when we need an expression loader to pull in the info
+    setExpressions(expressions);
 
     const SavedObjectFinder = getSavedObjectFinder(core.savedObjects, core.uiSettings);
 

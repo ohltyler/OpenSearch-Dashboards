@@ -86,10 +86,16 @@ export class AnomalyDetectionAction implements ActionByType<typeof ACTION_ANOMAL
       throw new IncompatibleActionError();
     }
 
-    // TODO: here is where the logic for handling the action being clicked should be handled - e.g., open some side panel
-    // to construct and run an anomaly detector.
-    console.log('executing AD action');
-    console.log('embeddable: ', embeddable);
+    console.log('executing AD action - passing embeddable: ', embeddable);
+    embeddable.parent.updateInput({
+      adFlyoutOpen: true,
+      selectedAdEmbeddable: embeddable,
+    });
+
+    // the embeddable here is the VisualizationEmbeddable
+    // the parent embeddable is the DashboardContainer
+    // console.log('embeddable: ', embeddable);
+    // console.log('embeddable parent: ', embeddable.parent);
 
     // See below example of the expand panel action. It calls back to the parent embeddable and updates the expanded panel ID,
     // such that the subscription on the input reads this new field, updates state, and will render the specific panel

@@ -227,7 +227,6 @@ export class EmbeddablePanel extends React.Component<Props, State> {
 
     const title = this.props.embeddable.getTitle();
     const headerId = this.generateId();
-    console.log('rendering embeddable_panel');
     return (
       <EuiPanel
         className={classes}

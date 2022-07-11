@@ -96,7 +96,7 @@ import {
 } from './saved_visualizations/_saved_vis';
 import { createSavedSearchesLoader } from '../../discover/public';
 import { DashboardStart } from '../../dashboard/public';
-import { AnomalyDetectionService, AnomalyDetectionApiClient } from './anomaly_detection';
+import { AnomalyDetectionService, AnomalyDetectionApiClient } from '../../anomaly_detection';
 
 /**
  * Interface for this plugin's returned setup/start contracts.

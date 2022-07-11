@@ -35,8 +35,8 @@
 // May need to redefine some AD data models here (in core). Downside is it requires more maintenance if there is model changes.
 // In addition, this import requires 'anomalyDetectionDashboards' to be listed as a required plugin in visualizations plugin
 // (see visualizations/opensearch_dashboards.json)
-import { Detector } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
-export * from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
+import { Detector } from '../../../plugins/anomaly-detection-dashboards-plugin-1/public';
+export * from '../../../plugins/anomaly-detection-dashboards-plugin-1/public';
 
 export const API_BASE_URL: string = `/api/anomaly_detectors`;
 

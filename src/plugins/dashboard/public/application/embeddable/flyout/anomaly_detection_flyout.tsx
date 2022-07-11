@@ -45,7 +45,7 @@ import {
   TimeRange,
 } from '../../../../../data/common';
 
-import { constructDetectorFromVis } from '../../../../../visualizations/public/anomaly_detection/utils/helpers';
+import { constructDetectorFromVis } from '../../../../../anomaly_detection/utils/helpers';
 import { Vis } from '../../../../../visualizations/public';
 import {
   IExpressionLoaderParams,
@@ -198,9 +198,10 @@ export class AnomalyDetectionFlyout extends React.Component<Props, State> {
     // That way, users can create separate detectors for
     // the same visualization that's embedded in separate dashboards/clusters/etc.
 
+    // When any query or filter is saved for a vis, it's saved within the stored searchSource
     const visContext = {
-      query: get(selectedAdEmbeddable, 'query', {}) as Query,
-      filters: get(selectedAdEmbeddable, 'filters', []) as Filter[],
+      query: get(selectedAdEmbeddable, 'vis.data.searchSource.fields.query', {}) as Query,
+      filters: get(selectedAdEmbeddable, 'vis.data.searchSource.fields.filter', []) as Filter[],
     } as Context;
 
     const dashboardContext = {

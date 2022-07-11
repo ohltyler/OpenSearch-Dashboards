@@ -37,14 +37,11 @@ import {
   Query,
   buildOpenSearchQuery,
   IAggConfig,
-} from '../../../../data/common';
+} from '../../data/common';
 import { FeatureAttributes } from '../types';
 //import { getSearch } from '../../services';
-import { Detector, Schedule, UNITS } from '../../anomaly_detection';
-import {
-  mergeQueriesAndFiltersWithSavedSearch,
-  ExecutionContext,
-} from '../../../../expressions/common';
+import { Detector, Schedule, UNITS } from '..';
+import { mergeQueriesAndFiltersWithSavedSearch, ExecutionContext } from '../../expressions/common';
 
 const constructDetectorNameFromVis = (visTitle: string) => {
   return visTitle.toLowerCase().replace(/\s/g, '-') + '-detector';

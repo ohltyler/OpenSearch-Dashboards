@@ -81,7 +81,12 @@ import {
 import { FeatureCatalogueCategory, HomePublicPluginSetup } from '../../../plugins/home/public';
 import { DEFAULT_APP_CATEGORIES } from '../../../core/public';
 import { ExpressionsSetup, ExpressionsStart } from '../../expressions/public';
-import { setExpressions } from './services';
+import {
+  setExpressions,
+  setSearch,
+  setAnomalyDetectionService,
+  setIndexPatterns,
+} from './services';
 
 import {
   ACTION_CLONE_PANEL,
@@ -127,6 +132,7 @@ import {
   AttributeServiceOptions,
   ATTRIBUTE_SERVICE_KEY,
 } from './attribute_service/attribute_service';
+import { AnomalyDetectionService, AnomalyDetectionApiClient } from '../../anomaly_detection';
 
 declare module '../../share/public' {
   export interface UrlGeneratorStateMapping {
@@ -476,6 +482,18 @@ export class DashboardPlugin
 
     // Setting the expressions service to use later when we need an expression loader to pull in the info
     setExpressions(expressions);
+
+    // Setting the search service to use later to get aggs
+    setSearch(search);
+
+    // Setting the index pattern service to use later to get the full index pattern
+    setIndexPatterns(indexPatterns);
+
+    // Setting the AD service to use to fetch AD details from cluster
+    const anomalyDetectionService = new AnomalyDetectionService({
+      apiClient: new AnomalyDetectionApiClient(core.http),
+    });
+    setAnomalyDetectionService(anomalyDetectionService);
 
     const SavedObjectFinder = getSavedObjectFinder(core.savedObjects, core.uiSettings);
 

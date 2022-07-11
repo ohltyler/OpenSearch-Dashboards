@@ -54,7 +54,7 @@ import { UiActionsStart } from '../../ui_actions/public';
 import { SavedVisualizationsLoader } from './saved_visualizations';
 import { SavedObjectLoader } from '../../saved_objects/public';
 import { EmbeddableStart } from '../../embeddable/public';
-import { AnomalyDetectionContract } from './anomaly_detection';
+import { AnomalyDetectionContract } from '../../anomaly_detection';
 
 export const [getUISettings, setUISettings] = createGetterSetter<IUiSettingsClient>('UISettings');
 

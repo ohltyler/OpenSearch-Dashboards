@@ -44,21 +44,21 @@ import {
 import { Filter, Query } from '../../../../data/common';
 // import { FilterManager } from '../../../data/public/query';
 
-import { constructDetectorFromVis } from '../../../../visualizations/public/anomaly_detection/utils/helpers';
+import { constructDetectorFromVis } from '../../../../anomaly_detection/utils/helpers';
 import { getParsedValue, ExecutionContext } from '../../../../expressions/common';
-// import {
-//   getTypes,
-//   getIndexPatterns,
-//   getFilterManager,
-//   getSearch,
-//   getAnomalyDetectionService,
-// } from '../services';
+import {
+  getTypes,
+  getIndexPatterns,
+  getFilterManager,
+  getSearch,
+  getAnomalyDetectionService,
+} from '../../services';
 // import { Dimension } from '../../../vis_type_vislib/public/vislib/helpers/point_series';
 // import {
 //   getAnomalyDataRangeQuery,
 //   buildParamsForGetAnomalyResultsWithDateRange,
 // } from '../../../../../plugins/anomaly-detection-dashboards-plugin-1/public/';
-import { Detector } from '../../../../visualizations/public/anomaly_detection';
+import { Detector } from '../../../../anomaly_detection';
 
 interface Arguments {
   visContext: string;
@@ -79,6 +79,26 @@ const handleCreateAnomalyDetectorRequest = async (
   getSavedObject: ExecutionContext['getSavedObject']
 ) => {
   console.log('in handleCreateAnomalyDetectorRequest');
+
+  const searchService = getSearch();
+  const anomalyDetectionService = getAnomalyDetectionService();
+  const indexPatternService = getIndexPatterns();
+
+  const indexPattern = await indexPatternService.get(JSON.parse(args.indexPattern)!.id);
+  const vis = JSON.parse(args.vis);
+  const visConfig = get(vis, 'params', {});
+  const aggConfigs = JSON.parse(args.aggConfigs);
+
+  const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigs.aggs);
+
+  // TODO: combine the queries and filters from vis + dashboard before parsing
+  const visContext = JSON.parse(args.visContext);
+  const dashboardContext = JSON.parse(args.dashboardContext);
+  console.log('vis context: ', visContext);
+  console.log('dashboard context: ', dashboardContext);
+  //   const parsedVisQuery = getParsedValue(args.visQuery, {}) as Query;
+  //   const parsedVisFilters = getParsedValue(args.visFilters, []);
+
   return 'dummy-detector-id';
   //   const vis = JSON.parse(args.vis);
   //   const visConfig = get(vis, 'params', {});
@@ -86,8 +106,6 @@ const handleCreateAnomalyDetectorRequest = async (
   //   const indexPatternService = getIndexPatterns();
   //   const indexPattern = await indexPatternService.get(JSON.parse(args.indexPattern)!.id);
   //   //const { filterManager } = getQueryService();
-  //   const searchService = getSearch();
-  //   const anomalyDetectionService = getAnomalyDetectionService();
 
   //   const aggs = searchService.aggs.createAggConfigs(indexPattern, aggConfigs);
   //   const parsedVisQuery = getParsedValue(args.visQuery, {}) as Query;

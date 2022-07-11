@@ -44,8 +44,8 @@ import {
 import { Filter, Query } from '../../../data/common';
 // import { FilterManager } from '../../../data/public/query';
 
-import { Detector } from '../anomaly_detection';
-import { constructDetectorFromVis } from '../anomaly_detection/utils';
+import { Detector } from '../../../anomaly_detection';
+import { constructDetectorFromVis } from '../../../anomaly_detection/utils';
 import { getParsedValue, ExecutionContext } from '../../../expressions/common';
 import {
   getTypes,

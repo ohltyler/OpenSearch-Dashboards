@@ -10,7 +10,8 @@
     "urlForwarding",
     "navigation",
     "uiActions",
-    "savedObjects"
+    "savedObjects",
+    "anomalyDetectionDashboards"
   ],
   "optionalPlugins": ["home", "share", "usageCollection"],
   "server": true,

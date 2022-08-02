@@ -65,6 +65,7 @@ import { SavedObjectAttributes } from '../../../../core/types';
 import { AttributeService } from '../../../dashboard/public';
 import { SavedVisualizationsLoader } from '../saved_visualizations';
 import { VisSavedObject } from '../types';
+import { buildGetContextPipeline } from '../legacy/build_pipeline_helpers';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
 
@@ -393,16 +394,30 @@ export class VisualizeEmbeddable
     }
     this.abortController = new AbortController();
     const abortController = this.abortController;
-    this.expression = await buildPipeline(this.vis, {
-      timefilter: this.timefilter,
-      timeRange: this.timeRange,
-      abortSignal: this.abortController!.signal,
-    });
 
-    if (this.handler && !abortController.signal.aborted) {
-      this.handler.update(this.expression, expressionParams);
-    }
+    const context = await this.getContext(expressionParams);
+    console.log('context: ', context);
+
+    // Commented out section below is the old way the expression fns were ran -
+    // one single constructed pipeline and update
+    //
+    // this.expression = await buildPipeline(this.vis, {
+    //   timefilter: this.timefilter,
+    //   timeRange: this.timeRange,
+    //   abortSignal: this.abortController!.signal,
+    // });
+
+    // if (this.handler && !abortController.signal.aborted) {
+    //   this.handler.update(this.expression, expressionParams);
+    // }
   }
+
+  private getContext = async (expressionParams: IExpressionLoaderParams) => {
+    const expression = await buildGetContextPipeline(this.vis);
+    if (this.handler) {
+      return await this.handler.run(expression, expressionParams);
+    }
+  };
 
   private handleVisUpdate = async () => {
     this.updateHandler();

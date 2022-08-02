@@ -148,6 +148,14 @@ export class ExpressionLoader {
     }
   }
 
+  run = (expression: string, params: IExpressionLoaderParams): Promise<any> => {
+    return getExpressionsService().run(expression, params.context, {
+      search: params.searchContext,
+      variables: params.variables || {},
+      inspectorAdapters: params.inspectorAdapters,
+    });
+  };
+
   private loadData = async (
     expression: string | ExpressionAstExpression,
     params: IExpressionLoaderParams

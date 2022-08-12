@@ -57,7 +57,7 @@ import {
   OpenSearchDashboardsContext,
   OpenSearchDashboardsDatatable,
 } from '../../../expressions/public';
-import { buildPipeline } from '../legacy/build_pipeline';
+import { buildPipeline, BuildPipelineParams } from '../legacy/build_pipeline';
 import { Vis, SerializedVis } from '../vis';
 import { getExpressions, getUiActions } from '../services';
 import { VIS_EVENT_TO_TRIGGER } from './events';
@@ -71,6 +71,7 @@ import {
   buildGetContextPipeline,
   buildGenerateVisDataPipeline,
   buildAugmentDataTablePipeline,
+  buildRenderVisPipeline,
 } from '../legacy/build_pipeline_helpers';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
@@ -424,20 +425,29 @@ export class VisualizeEmbeddable
         combinedArgs
       );
 
-      // TODO: add the logic for the final vis render fn
+      this.renderVis(
+        {
+          timefilter: this.timefilter,
+          timeRange: this.timeRange,
+          abortSignal: this.abortController!.signal,
+        },
+        contextParams,
+        augmentedDataTable
+      );
     }
 
     // Commented out section below is the old way the expression fns were ran -
     // one single constructed pipeline and update
     //
-    // this.expression = await buildPipeline(this.vis, {
-    //   timefilter: this.timefilter,
-    //   timeRange: this.timeRange,
-    //   abortSignal: this.abortController!.signal,
-    // });
+    //   this.expression = await buildPipeline(this.vis, {
+    //     timefilter: this.timefilter,
+    //     timeRange: this.timeRange,
+    //     abortSignal: this.abortController!.signal,
+    //   });
 
-    // if (this.handler && !abortController.signal.aborted) {
-    //   this.handler.update(this.expression, expressionParams);
+    //   if (this.handler && !abortController.signal.aborted) {
+    //     this.handler.update(this.expression, contextParams);
+    //   }
     // }
   }
 
@@ -470,6 +480,15 @@ export class VisualizeEmbeddable
       expressionFnArgs
     );
     return (await this.handler?.run(expression, dataTable)) as OpenSearchDashboardsDatatable;
+  };
+
+  private renderVis = async (
+    buildPipelineParams: BuildPipelineParams,
+    contextParams: IExpressionLoaderParams,
+    datatable: OpenSearchDashboardsDatatable
+  ) => {
+    const expression = await buildRenderVisPipeline(this.vis, buildPipelineParams);
+    this.handler?.update(expression, contextParams, datatable);
   };
 
   private handleVisUpdate = async () => {

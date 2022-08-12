@@ -509,3 +509,33 @@ export const buildAugmentDataTablePipeline = async (
 
   return pipeline;
 };
+
+export const buildRenderVisPipeline = async (vis: Vis, params: BuildPipelineParams) => {
+  let pipeline = '';
+
+  const { uiState, title } = vis;
+  const { indexPattern } = vis.data;
+  const schemas = getSchemas(vis, params);
+
+  if (buildPipelineVisFunction[vis.type.name]) {
+    pipeline += buildPipelineVisFunction[vis.type.name]({ title, ...vis.params }, schemas, uiState);
+  } else if (vislibCharts.includes(vis.type.name)) {
+    const visConfig = { ...vis.params };
+    visConfig.dimensions = await buildVislibDimensions(vis, params);
+    pipeline += `vislib type='${vis.type.name}' ${prepareJson('visConfig', visConfig)}`;
+  } else {
+    const visConfig = { ...vis.params };
+    visConfig.dimensions = schemas;
+    pipeline += `visualization type='${vis.type.name}'
+  ${prepareJson('visConfig', visConfig)}
+  metricsAtAllLevels=${vis.isHierarchical()}
+  partialRows=${vis.params.showPartialRows || false} `;
+    if (indexPattern) {
+      pipeline += `${prepareString('index', indexPattern.id)} `;
+      if (vis.data.aggs) {
+        pipeline += `${prepareJson('aggConfigs', vis.data.aggs!.aggs)}`;
+      }
+    }
+  }
+  return pipeline;
+};

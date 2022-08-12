@@ -137,19 +137,26 @@ export class ExpressionLoader {
     return this.execution ? (this.execution.inspect() as Adapters) : undefined;
   }
 
-  update(expression?: string | ExpressionAstExpression, params?: IExpressionLoaderParams): void {
+  // TODO: add a custom input option here. May be able to remove the run() fn below entirely.
+  // or at least run the final vis render fn via this update() fn
+  update(
+    expression?: string | ExpressionAstExpression,
+    params?: IExpressionLoaderParams,
+    customInput?: any
+  ): void {
     this.setParams(params);
 
     this.loadingSubject.next(true);
     if (expression) {
-      this.loadData(expression, this.params);
+      this.loadData(expression, this.params, customInput);
     } else if (this.data) {
       this.render(this.data);
     }
   }
 
   // input/output is the same as the run() fn ran inside this one. This fn is simply to pass
-  // along the request to the expressions plugin to execute it
+  // along the request to the expressions plugin to execute it, rather than having to instantiate
+  // the expressions service separately in another plugin
   run = <Input, Output, ExtraContext extends Record<string, unknown> = Record<string, unknown>>(
     ast: string | ExpressionAstExpression,
     input: Input,
@@ -160,13 +167,15 @@ export class ExpressionLoader {
 
   private loadData = async (
     expression: string | ExpressionAstExpression,
-    params: IExpressionLoaderParams
+    params: IExpressionLoaderParams,
+    customInput?: any
   ): Promise<void> => {
     if (this.execution && this.execution.isPending) {
       this.execution.cancel();
     }
     this.setParams(params);
-    this.execution = getExpressionsService().execute(expression, params.context, {
+    const input = customInput ? customInput : params.context;
+    this.execution = getExpressionsService().execute(expression, input, {
       search: params.searchContext,
       variables: params.variables || {},
       inspectorAdapters: params.inspectorAdapters,

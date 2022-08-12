@@ -148,12 +148,14 @@ export class ExpressionLoader {
     }
   }
 
-  run = (expression: string, params: IExpressionLoaderParams): Promise<any> => {
-    return getExpressionsService().run(expression, params.context, {
-      search: params.searchContext,
-      variables: params.variables || {},
-      inspectorAdapters: params.inspectorAdapters,
-    });
+  // input/output is the same as the run() fn ran inside this one. This fn is simply to pass
+  // along the request to the expressions plugin to execute it
+  run = <Input, Output, ExtraContext extends Record<string, unknown> = Record<string, unknown>>(
+    ast: string | ExpressionAstExpression,
+    input: Input,
+    context?: ExtraContext
+  ): Promise<Output> => {
+    return getExpressionsService().run(ast, input, context);
   };
 
   private loadData = async (

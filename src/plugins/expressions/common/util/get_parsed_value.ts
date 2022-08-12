@@ -28,6 +28,5 @@
  * under the License.
  */
 
-export * from './create_error';
-export * from './get_by_alias';
-export * from './get_parsed_value';
+export const getParsedValue = (data: any, defaultValue: any) =>
+  typeof data === 'string' && data.length ? JSON.parse(data) || defaultValue : defaultValue;

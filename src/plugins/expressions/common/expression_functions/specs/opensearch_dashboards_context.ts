@@ -33,6 +33,7 @@ import { i18n } from '@osd/i18n';
 import { ExpressionFunctionDefinition } from '../../expression_functions';
 import { OpenSearchDashboardsContext } from '../../expression_types';
 import { Query, uniqFilters } from '../../../../data/common';
+import { getParsedValue } from '../../util';
 
 interface Arguments {
   q?: string | null;
@@ -47,9 +48,6 @@ export type ExpressionFunctionOpenSearchDashboardsContext = ExpressionFunctionDe
   Arguments,
   Promise<OpenSearchDashboardsContext>
 >;
-
-const getParsedValue = (data: any, defaultValue: any) =>
-  typeof data === 'string' && data.length ? JSON.parse(data) || defaultValue : defaultValue;
 
 const mergeQueries = (first: Query | Query[] = [], second: Query | Query[]) =>
   uniqBy<Query>(

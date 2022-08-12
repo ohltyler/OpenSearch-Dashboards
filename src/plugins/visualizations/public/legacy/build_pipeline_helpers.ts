@@ -459,6 +459,7 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
   return pipeline;
 };
 
+// Covers all cases for context
 export const buildGetContextPipeline = async (vis: Vis) => {
   const { searchSource } = vis.data;
   const query = searchSource!.getField('query');
@@ -474,5 +475,37 @@ export const buildGetContextPipeline = async (vis: Vis) => {
   if (vis.data.savedSearchId) {
     pipeline += prepareString('savedSearchId', vis.data.savedSearchId);
   }
+  return pipeline;
+};
+
+// Covers the else block - courier request handler. This is if the vis
+// type requires some sort of fetching of results from the OpenSearch cluster.
+export const buildGenerateVisDataPipeline = async (vis: Vis) => {
+  const { indexPattern } = vis.data;
+  let pipeline = '';
+  if (vis.type.requestHandler === 'courier') {
+    pipeline += `opensearchaggs
+  ${prepareString('index', indexPattern!.id)}
+  metricsAtAllLevels=${vis.isHierarchical()}
+  partialRows=${vis.params.showPartialRows || false}
+  ${prepareJson('aggConfigs', vis.data.aggs!.aggs)}`;
+  }
+  return pipeline;
+};
+
+// Covers the new logic to augment existing data table
+// with plugin-specific data
+export const buildAugmentDataTablePipeline = async (
+  vis: Vis,
+  expressionFn: string,
+  expressionFnArgs: { [arg: string]: any }
+) => {
+  let pipeline = expressionFn + '\n';
+
+  // iterate through the args and append to the pipeline string
+  for (const arg in expressionFnArgs) {
+    pipeline += `${prepareJson(arg, expressionFnArgs[arg])}` + '\n';
+  }
+
   return pipeline;
 };

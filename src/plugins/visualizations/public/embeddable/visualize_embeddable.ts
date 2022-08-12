@@ -54,6 +54,8 @@ import {
   IExpressionLoaderParams,
   ExpressionsStart,
   ExpressionRenderError,
+  OpenSearchDashboardsContext,
+  OpenSearchDashboardsDatatable,
 } from '../../../expressions/public';
 import { buildPipeline } from '../legacy/build_pipeline';
 import { Vis, SerializedVis } from '../vis';
@@ -65,7 +67,11 @@ import { SavedObjectAttributes } from '../../../../core/types';
 import { AttributeService } from '../../../dashboard/public';
 import { SavedVisualizationsLoader } from '../saved_visualizations';
 import { VisSavedObject } from '../types';
-import { buildGetContextPipeline } from '../legacy/build_pipeline_helpers';
+import {
+  buildGetContextPipeline,
+  buildGenerateVisDataPipeline,
+  buildAugmentDataTablePipeline,
+} from '../legacy/build_pipeline_helpers';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
 
@@ -380,7 +386,7 @@ export class VisualizeEmbeddable
   };
 
   private async updateHandler() {
-    const expressionParams: IExpressionLoaderParams = {
+    const contextParams: IExpressionLoaderParams = {
       searchContext: {
         timeRange: this.timeRange,
         query: this.input.query,
@@ -395,8 +401,31 @@ export class VisualizeEmbeddable
     this.abortController = new AbortController();
     const abortController = this.abortController;
 
-    const context = await this.getContext(expressionParams);
-    console.log('context: ', context);
+    if (this.handler && !abortController.signal.aborted) {
+      const context = await this.getContext(contextParams);
+
+      const dataTable = await this.generateVisData(context);
+
+      // For each saved object that has a visualization_overlay field for this visualization,
+      // parse out the data in it (currently: expr fn name and expr fn args)
+      // For now, have a dummy expr fn registered in AD plugin
+      const pluginExpressionFnName = 'overlay_anomalies';
+      const pluginExpressionFnArgs = {};
+
+      // always include context arg in the plugin expression fn.
+      const combinedArgs = {
+        context: context,
+        ...pluginExpressionFnArgs,
+      } as { [arg: string]: any };
+
+      const augmentedDataTable = await this.augmentDataTable(
+        dataTable,
+        pluginExpressionFnName,
+        combinedArgs
+      );
+
+      // TODO: add the logic for the final vis render fn
+    }
 
     // Commented out section below is the old way the expression fns were ran -
     // one single constructed pipeline and update
@@ -412,11 +441,35 @@ export class VisualizeEmbeddable
     // }
   }
 
-  private getContext = async (expressionParams: IExpressionLoaderParams) => {
+  private getContext = async (
+    params: IExpressionLoaderParams
+  ): Promise<OpenSearchDashboardsContext> => {
     const expression = await buildGetContextPipeline(this.vis);
-    if (this.handler) {
-      return await this.handler.run(expression, expressionParams);
-    }
+    return (await this.handler?.run(expression, params.context, {
+      search: params.searchContext,
+      variables: params.variables || {},
+      inspectorAdapters: params.inspectorAdapters,
+    })) as OpenSearchDashboardsContext;
+  };
+
+  private generateVisData = async (
+    context: OpenSearchDashboardsContext
+  ): Promise<OpenSearchDashboardsDatatable> => {
+    const expression = await buildGenerateVisDataPipeline(this.vis);
+    return (await this.handler?.run(expression, context)) as OpenSearchDashboardsDatatable;
+  };
+
+  private augmentDataTable = async (
+    dataTable: OpenSearchDashboardsDatatable,
+    expressionFn: string,
+    expressionFnArgs: { [arg: string]: any }
+  ): Promise<OpenSearchDashboardsDatatable> => {
+    const expression = await buildAugmentDataTablePipeline(
+      this.vis,
+      expressionFn,
+      expressionFnArgs
+    );
+    return (await this.handler?.run(expression, dataTable)) as OpenSearchDashboardsDatatable;
   };
 
   private handleVisUpdate = async () => {

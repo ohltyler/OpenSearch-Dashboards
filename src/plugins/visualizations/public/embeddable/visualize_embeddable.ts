@@ -411,7 +411,9 @@ export class VisualizeEmbeddable
       // parse out the data in it (currently: expr fn name and expr fn args)
       // For now, have a dummy expr fn registered in AD plugin
       const pluginExpressionFnName = 'overlay_anomalies';
-      const pluginExpressionFnArgs = {};
+      const pluginExpressionFnArgs = {
+        detectorId: '5uJoooIB4l2cINcnoX_P',
+      };
 
       // always include context arg in the plugin expression fn.
       const combinedArgs = {
@@ -425,6 +427,7 @@ export class VisualizeEmbeddable
         combinedArgs
       );
 
+      // finally: render the vis with the augmented data table
       this.renderVis(
         {
           timefilter: this.timefilter,

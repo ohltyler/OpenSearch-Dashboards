@@ -87,7 +87,7 @@ export interface BuildPipelineParams {
   abortSignal?: AbortSignal;
 }
 
-const vislibCharts: string[] = [
+export const vislibCharts: string[] = [
   'area',
   'gauge',
   'goal',
@@ -496,7 +496,6 @@ export const buildGenerateVisDataPipeline = async (vis: Vis) => {
 // Covers the new logic to augment existing data table
 // with plugin-specific data
 export const buildAugmentDataTablePipeline = async (
-  vis: Vis,
   expressionFn: string,
   expressionFnArgs: { [arg: string]: any }
 ) => {
@@ -510,8 +509,18 @@ export const buildAugmentDataTablePipeline = async (
   return pipeline;
 };
 
-export const buildRenderVisPipeline = async (vis: Vis, params: BuildPipelineParams) => {
+// The idea is once it hits this fn, we pass in the final vis config with the updated dimensions
+// The existing logic about setting the dimensions has been commented out and moved into visualize_embeddable
+export const buildRenderVisPipeline = async (
+  vis: Vis,
+  visConfig: VisParams,
+  params: BuildPipelineParams
+) => {
   let pipeline = '';
+
+  // TODO: look at adding the visconfig before even reaching these helper fns to simplify
+  // the number of params that need to be passed around.
+  vis.params = visConfig;
 
   const { uiState, title } = vis;
   const { indexPattern } = vis.data;
@@ -521,11 +530,11 @@ export const buildRenderVisPipeline = async (vis: Vis, params: BuildPipelinePara
     pipeline += buildPipelineVisFunction[vis.type.name]({ title, ...vis.params }, schemas, uiState);
   } else if (vislibCharts.includes(vis.type.name)) {
     const visConfig = { ...vis.params };
-    visConfig.dimensions = await buildVislibDimensions(vis, params);
+    //visConfig.dimensions = await buildVislibDimensions(vis, params);
     pipeline += `vislib type='${vis.type.name}' ${prepareJson('visConfig', visConfig)}`;
   } else {
     const visConfig = { ...vis.params };
-    visConfig.dimensions = schemas;
+    //visConfig.dimensions = schemas;
     pipeline += `visualization type='${vis.type.name}'
   ${prepareJson('visConfig', visConfig)}
   metricsAtAllLevels=${vis.isHierarchical()}

@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import _, { get } from 'lodash';
+import _, { get, cloneDeep } from 'lodash';
 import { Subscription } from 'rxjs';
 import * as Rx from 'rxjs';
 import { i18n } from '@osd/i18n';
@@ -56,8 +56,8 @@ import {
   ExpressionRenderError,
   OpenSearchDashboardsContext,
   OpenSearchDashboardsDatatable,
+  VisData,
 } from '../../../expressions/public';
-import { buildPipeline, BuildPipelineParams } from '../legacy/build_pipeline';
 import { Vis, SerializedVis } from '../vis';
 import { getExpressions, getUiActions } from '../services';
 import { VIS_EVENT_TO_TRIGGER } from './events';
@@ -66,12 +66,17 @@ import { TriggerId } from '../../../ui_actions/public';
 import { SavedObjectAttributes } from '../../../../core/types';
 import { AttributeService } from '../../../dashboard/public';
 import { SavedVisualizationsLoader } from '../saved_visualizations';
-import { VisSavedObject } from '../types';
+import { VisSavedObject, VisParams } from '../types';
 import {
+  BuildPipelineParams,
   buildGetContextPipeline,
   buildGenerateVisDataPipeline,
   buildAugmentDataTablePipeline,
   buildRenderVisPipeline,
+  getSchemas,
+  vislibCharts,
+  buildVislibDimensions,
+  buildPipelineVisFunction,
 } from '../legacy/build_pipeline_helpers';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
@@ -404,8 +409,36 @@ export class VisualizeEmbeddable
 
     if (this.handler && !abortController.signal.aborted) {
       const context = await this.getContext(contextParams);
+      const buildPipelineParams = {
+        timefilter: this.timefilter,
+        timeRange: this.timeRange,
+        abortSignal: this.abortController!.signal,
+      } as BuildPipelineParams;
 
-      const dataTable = await this.generateVisData(context);
+      const origDatatable = await this.generateVisData(context);
+
+      // By default, the vis config may not have dimensions. This sets it here, so
+      // it can be updated if necessary. For example, if overlaying anomalies, we need
+      // to update the existing dimensions to add a timeseries on the 'metrics' or 'y' field.
+
+      // Note that this may all get removed depending how the anomalies / alerts are rendered on
+      // the vis. If not using direct augmentation of the data table, and if showing via some
+      // annotation or gray bar on the chart, then that will need different logic.
+      // But overall, we will still want to persist the updated vis config as and input/output
+      // of the overlay fns, since all overlay fns will be doing something to the underlying stored config.
+
+      // We determine how to set the dimensions based on the existing logic in build_pipeline.
+      // This just pulls it out and sets it here
+      const dimensions = buildPipelineVisFunction[this.vis.type.name]
+        ? undefined
+        : vislibCharts.includes(this.vis.type.name)
+        ? await buildVislibDimensions(this.vis, buildPipelineParams)
+        : getSchemas(this.vis, buildPipelineParams);
+
+      let origVisConfigWithDimensions = {
+        ...cloneDeep(this.vis.params),
+        dimensions: dimensions,
+      };
 
       // For each saved object that has a visualization_overlay field for this visualization,
       // parse out the data in it (currently: expr fn name and expr fn args)
@@ -421,22 +454,18 @@ export class VisualizeEmbeddable
         ...pluginExpressionFnArgs,
       } as { [arg: string]: any };
 
-      const augmentedDataTable = await this.augmentDataTable(
-        dataTable,
+      const { datatable, visConfig } = await this.augmentDataTable(
+        {
+          type: 'vis_data',
+          datatable: origDatatable,
+          visConfig: origVisConfigWithDimensions,
+        } as VisData,
         pluginExpressionFnName,
         combinedArgs
       );
 
       // finally: render the vis with the augmented data table
-      this.renderVis(
-        {
-          timefilter: this.timefilter,
-          timeRange: this.timeRange,
-          abortSignal: this.abortController!.signal,
-        },
-        contextParams,
-        augmentedDataTable
-      );
+      this.renderVis(visConfig, buildPipelineParams, contextParams, datatable);
     }
 
     // Commented out section below is the old way the expression fns were ran -
@@ -473,24 +502,21 @@ export class VisualizeEmbeddable
   };
 
   private augmentDataTable = async (
-    dataTable: OpenSearchDashboardsDatatable,
+    visData: VisData,
     expressionFn: string,
     expressionFnArgs: { [arg: string]: any }
-  ): Promise<OpenSearchDashboardsDatatable> => {
-    const expression = await buildAugmentDataTablePipeline(
-      this.vis,
-      expressionFn,
-      expressionFnArgs
-    );
-    return (await this.handler?.run(expression, dataTable)) as OpenSearchDashboardsDatatable;
+  ): Promise<VisData> => {
+    const expression = await buildAugmentDataTablePipeline(expressionFn, expressionFnArgs);
+    return (await this.handler?.run(expression, visData)) as VisData;
   };
 
   private renderVis = async (
+    visConfig: VisParams,
     buildPipelineParams: BuildPipelineParams,
     contextParams: IExpressionLoaderParams,
     datatable: OpenSearchDashboardsDatatable
   ) => {
-    const expression = await buildRenderVisPipeline(this.vis, buildPipelineParams);
+    const expression = await buildRenderVisPipeline(this.vis, visConfig, buildPipelineParams);
     this.handler?.update(expression, contextParams, datatable);
   };
 

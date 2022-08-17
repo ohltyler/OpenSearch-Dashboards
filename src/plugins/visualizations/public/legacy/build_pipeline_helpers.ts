@@ -30,7 +30,11 @@
 
 import { get } from 'lodash';
 import moment from 'moment';
-import { formatExpression, SerializedFieldFormat } from '../../../../plugins/expressions/public';
+import {
+  formatExpression,
+  SerializedFieldFormat,
+  OpenSearchDashboardsContext,
+} from '../../../../plugins/expressions/public';
 import { IAggConfig, search, TimefilterContract } from '../../../../plugins/data/public';
 import { Vis, VisParams } from '../types';
 const { isDateHistogramBucketAggConfig } = search.aggs;
@@ -547,4 +551,11 @@ export const buildRenderVisPipeline = async (
     }
   }
   return pipeline;
+};
+
+export const buildRenderAstVisPipeline = async (vis: Vis, params: BuildPipelineParams) => {
+  if (vis.type.toExpressionAst) {
+    const visAst = await vis.type?.toExpressionAst(vis, params);
+    return formatExpression(visAst);
+  }
 };

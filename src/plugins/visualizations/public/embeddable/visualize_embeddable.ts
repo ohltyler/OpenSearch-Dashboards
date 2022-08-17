@@ -77,6 +77,7 @@ import {
   vislibCharts,
   buildVislibDimensions,
   buildPipelineVisFunction,
+  buildRenderAstVisPipeline,
 } from '../legacy/build_pipeline_helpers';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
@@ -415,57 +416,61 @@ export class VisualizeEmbeddable
         abortSignal: this.abortController!.signal,
       } as BuildPipelineParams;
 
-      const origDatatable = await this.generateVisData(context);
+      // TODO: test below AST functionality
+      // Currently, a few vis types implement the 'toExpressionAst' fn, which is used to
+      // convert the expresssions render pipeline into an AST (abstract syntax tree).
+      // At the time of writing this, only the (1) timeline, (2) metric, and (3) markdown
+      // vis types are using this. None of these are eligible for the visualization overlay functinoality
+      // for now, so we can leave the logic as it existed before.
+      if (this.vis.type.toExpressionAst) {
+        this.renderAstVis(buildPipelineParams, context, contextParams);
+      } else {
+        const origDatatable = await this.generateVisData(context);
 
-      // By default, the vis config may not have dimensions. This sets it here, so
-      // it can be updated if necessary. For example, if overlaying anomalies, we need
-      // to update the existing dimensions to add a timeseries on the 'metrics' or 'y' field.
+        // By default, the vis config may not have dimensions set when first passing to any
+        // augment data table fns. This sets it here, so it can be updated if necessary. For example,
+        // if overlaying anomalies. we need to update the dimensions to add a timeseris on the 'y' field.
+        //
+        // We determine how to set the dimensions based on the existing logic in build_pipeline.
+        // This just refactors that logic here
+        const dimensions = buildPipelineVisFunction[this.vis.type.name]
+          ? undefined
+          : vislibCharts.includes(this.vis.type.name)
+          ? await buildVislibDimensions(this.vis, buildPipelineParams)
+          : getSchemas(this.vis, buildPipelineParams);
 
-      // Note that this may all get removed depending how the anomalies / alerts are rendered on
-      // the vis. If not using direct augmentation of the data table, and if showing via some
-      // annotation or gray bar on the chart, then that will need different logic.
-      // But overall, we will still want to persist the updated vis config as and input/output
-      // of the overlay fns, since all overlay fns will be doing something to the underlying stored config.
+        let origVisConfigWithDimensions = {
+          ...cloneDeep(this.vis.params),
+          dimensions: dimensions,
+        };
 
-      // We determine how to set the dimensions based on the existing logic in build_pipeline.
-      // This just pulls it out and sets it here
-      const dimensions = buildPipelineVisFunction[this.vis.type.name]
-        ? undefined
-        : vislibCharts.includes(this.vis.type.name)
-        ? await buildVislibDimensions(this.vis, buildPipelineParams)
-        : getSchemas(this.vis, buildPipelineParams);
+        // For each saved object that has a visualization_overlay field for this visualization,
+        // parse out the data in it (currently: expr fn name and expr fn args)
+        // For now, have a dummy expr fn registered in AD plugin
+        const pluginExpressionFnName = 'overlay_anomalies';
+        const pluginExpressionFnArgs = {
+          detectorId: '5uJoooIB4l2cINcnoX_P',
+        };
 
-      let origVisConfigWithDimensions = {
-        ...cloneDeep(this.vis.params),
-        dimensions: dimensions,
-      };
+        // always include context arg in the plugin expression fn.
+        const combinedArgs = {
+          context: context,
+          ...pluginExpressionFnArgs,
+        } as { [arg: string]: any };
 
-      // For each saved object that has a visualization_overlay field for this visualization,
-      // parse out the data in it (currently: expr fn name and expr fn args)
-      // For now, have a dummy expr fn registered in AD plugin
-      const pluginExpressionFnName = 'overlay_anomalies';
-      const pluginExpressionFnArgs = {
-        detectorId: '5uJoooIB4l2cINcnoX_P',
-      };
+        const { datatable, visConfig } = await this.augmentDataTable(
+          {
+            type: 'vis_data',
+            datatable: origDatatable,
+            visConfig: origVisConfigWithDimensions,
+          } as VisData,
+          pluginExpressionFnName,
+          combinedArgs
+        );
 
-      // always include context arg in the plugin expression fn.
-      const combinedArgs = {
-        context: context,
-        ...pluginExpressionFnArgs,
-      } as { [arg: string]: any };
-
-      const { datatable, visConfig } = await this.augmentDataTable(
-        {
-          type: 'vis_data',
-          datatable: origDatatable,
-          visConfig: origVisConfigWithDimensions,
-        } as VisData,
-        pluginExpressionFnName,
-        combinedArgs
-      );
-
-      // finally: render the vis with the augmented data table
-      this.renderVis(visConfig, buildPipelineParams, contextParams, datatable);
+        // finally: render the vis with the augmented data table
+        this.renderVis(visConfig, buildPipelineParams, contextParams, datatable);
+      }
     }
 
     // Commented out section below is the old way the expression fns were ran -
@@ -518,6 +523,15 @@ export class VisualizeEmbeddable
   ) => {
     const expression = await buildRenderVisPipeline(this.vis, visConfig, buildPipelineParams);
     this.handler?.update(expression, contextParams, datatable);
+  };
+
+  private renderAstVis = async (
+    params: BuildPipelineParams,
+    context: OpenSearchDashboardsContext,
+    contextParams: IExpressionLoaderParams
+  ) => {
+    const expression = await buildRenderAstVisPipeline(this.vis, params);
+    this.handler?.update(expression, contextParams, context);
   };
 
   private handleVisUpdate = async () => {

@@ -32,14 +32,14 @@
 
 import { OpenSearchDashboardsDatatable } from './opensearch_dashboards_datatable';
 import { ExpressionTypeDefinition } from '../types';
+import { VisParams } from '../../../../visualizations/public';
 
 const name = 'vis_data';
 
 export interface VisData {
   type: typeof name;
   datatable: OpenSearchDashboardsDatatable;
-  // TODO: make this a type possibly?
-  visConfig: any;
+  visConfig: VisParams;
 }
 
 export const visData: ExpressionTypeDefinition<typeof name, VisData> = {

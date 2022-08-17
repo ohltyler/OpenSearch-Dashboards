@@ -417,10 +417,10 @@ export class VisualizeEmbeddable
       } as BuildPipelineParams;
 
       // TODO: test below AST functionality
-      // Currently, a few vis types implement the 'toExpressionAst' fn, which is used to
+      // Currently, a few vis types implement a custom 'toExpressionAst' fn, which is used to
       // convert the expresssions render pipeline into an AST (abstract syntax tree).
       // At the time of writing this, only the (1) timeline, (2) metric, and (3) markdown
-      // vis types are using this. None of these are eligible for the visualization overlay functinoality
+      // vis types are using this. None of these are eligible for the visualization overlay functionality
       // for now, so we can leave the logic as it existed before.
       if (this.vis.type.toExpressionAst) {
         this.renderAstVis(buildPipelineParams, context, contextParams);
@@ -442,9 +442,9 @@ export class VisualizeEmbeddable
         let origVisConfigWithDimensions = {
           ...cloneDeep(this.vis.params),
           dimensions: dimensions,
-        };
+        } as VisParams;
 
-        // For each saved object that has a visualization_overlay field for this visualization,
+        // For each saved object feature-anywhere type that has a vis_overlay_field field for this visualization,
         // parse out the data in it (currently: expr fn name and expr fn args)
         // For now, have a dummy expr fn registered in AD plugin
         const pluginExpressionFnName = 'overlay_anomalies';

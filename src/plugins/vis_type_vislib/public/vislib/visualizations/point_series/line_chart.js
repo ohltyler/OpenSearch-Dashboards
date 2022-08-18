@@ -217,6 +217,23 @@ export class LineChart extends PointSeries {
     return line;
   }
 
+  // TODO: add a new group of annotations based on the x-value from anomalies
+  addAnnotations(svg, data) {
+    console.log('adding annotations');
+  }
+
+  getAdFilteredData(data) {
+    return data.map(function (d) {
+      const filteredValues = d.values.filter(function (dd) {
+        return dd.y !== undefined;
+      });
+      return {
+        ...d,
+        values: filteredValues,
+      };
+    });
+  }
+
   /**
    * Renders d3 visualization
    *
@@ -231,8 +248,15 @@ export class LineChart extends PointSeries {
         const svg = self.chartEl.append('g');
         svg.data([self.chartData]);
 
+        // currently I can filter out data that's AD-specific.
+        // Then, I can add some annotations that are only applied
+        // to these data points. Will need to figure out ways to
+        // pass down plugin functionality via some vis config fields
+        const filteredData =
+          self.chartData.id == 'ad' ? self.getAdFilteredData([self.chartData]) : self.chartData;
+
         if (self.seriesConfig.drawLinesBetweenPoints) {
-          self.addLine(svg, self.chartData);
+          self.addLine(svg, filteredData);
         }
         const circles = self.addCircles(svg, self.chartData);
         self.addCircleEvents(circles);

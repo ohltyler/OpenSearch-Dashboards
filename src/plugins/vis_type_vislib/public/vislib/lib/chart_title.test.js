@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import {
   setHTMLElementClientSizes,
@@ -115,7 +115,7 @@ describe('Vislib ChartTitle Class Test Suite', function () {
 
   beforeEach(() => {
     mockUiState = getMockUiState();
-    el = d3.select('body').append('div').attr('class', 'visWrapper').datum(data);
+    el = select('body').append('div').attr('class', 'visWrapper').datum(data);
 
     el.append('div').attr('class', 'chart-title').style('height', '20px');
 

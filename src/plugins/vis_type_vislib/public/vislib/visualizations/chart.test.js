@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import { setHTMLElementClientSizes, setSVGElementGetBBox } from '../../../../../test_utils/public';
 import { Chart } from './_chart';
 import { getMockUiState } from '../../fixtures/mocks';
@@ -125,7 +125,7 @@ describe('Vislib _chart Test Suite', function () {
   });
 
   beforeEach(() => {
-    el = d3.select('body').append('div').attr('class', 'column-chart');
+    el = select('body').append('div').attr('class', 'column-chart');
 
     config = {
       type: 'histogram',

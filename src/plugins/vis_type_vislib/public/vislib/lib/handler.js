@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import MarkdownIt from 'markdown-it';
 
@@ -160,7 +160,7 @@ export class Handler {
 
     const self = this;
     const { binder, charts = [] } = this;
-    const selection = d3.select(this.el);
+    const selection = select(this.el);
 
     selection.selectAll('*').remove();
 
@@ -210,11 +210,11 @@ export class Handler {
    * @method removeAll
    * @param el {HTMLElement} Reference to the HTML Element that
    * contains the chart
-   * @returns {D3.Selection|D3.Transition.Transition} With the chart
+   * @returns {selection|D3.Transition.Transition} With the chart
    * child element removed
    */
   removeAll(el) {
-    return d3.select(el).selectAll('*').remove();
+    return select(el).selectAll('*').remove();
   }
 
   /**

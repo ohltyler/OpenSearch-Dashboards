@@ -31,6 +31,7 @@
 import { set } from '@elastic/safer-lodash-set';
 import _ from 'lodash';
 import d3 from 'd3';
+import { format } from 'd3-format';
 import { SCALE_MODES } from './scale_modes';
 
 const defaults = {
@@ -87,7 +88,7 @@ const categoryDefaults = {
 
 const valueDefaults = {
   labels: {
-    axisFormatter: d3.format('n'),
+    axisFormatter: format('n'),
   },
 };
 

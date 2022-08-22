@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 
 export class AxisTitle {
@@ -40,7 +40,7 @@ export class AxisTitle {
   }
 
   render() {
-    d3.select(this.axisConfig.get('rootEl')).selectAll(this.elSelector).call(this.draw());
+    select(this.axisConfig.get('rootEl')).selectAll(this.elSelector).call(this.draw());
   }
 
   destroy() {
@@ -55,7 +55,7 @@ export class AxisTitle {
         if (!config.get('show') && !config.get('title.show', false)) return;
 
         const el = this;
-        const div = d3.select(el);
+        const div = select(el);
         const width = $(el).width();
         const height = $(el).height();
         const axisPrefix = config.isHorizontal() ? 'x' : 'y';

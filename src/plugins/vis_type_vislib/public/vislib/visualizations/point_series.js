@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import $ from 'jquery';
 
@@ -237,7 +237,7 @@ export class PointSeries extends Chart {
       selection.each(function (data) {
         const el = this;
 
-        div = d3.select(el);
+        div = select(el);
 
         svg = div
           .append('svg')

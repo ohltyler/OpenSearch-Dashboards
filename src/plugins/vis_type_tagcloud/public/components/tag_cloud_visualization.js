@@ -39,7 +39,7 @@ import { getFormatService } from '../services';
 import { Label } from './label';
 import { TagCloud } from './tag_cloud';
 import { FeedbackMessage } from './feedback_message';
-import d3 from 'd3';
+import { scaleOrdinal } from 'd3-scale';
 
 const MAX_TAG_COUNT = 200;
 
@@ -58,7 +58,7 @@ export class TagCloudVisualization {
     this._containerNode.appendChild(cloudRelativeContainer);
 
     this._truncated = false;
-    this._tagCloud = new TagCloud(cloudContainer, d3.scale.ordinal().range(colors.seedColors));
+    this._tagCloud = new TagCloud(cloudContainer, scaleOrdinal().range(colors.seedColors));
     this._tagCloud.on('select', (event) => {
       if (!this._visParams.bucket) {
         return;

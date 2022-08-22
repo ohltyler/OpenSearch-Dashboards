@@ -28,7 +28,8 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
+import { line, curveLinear, curve } from 'd3-shape';
 import _ from 'lodash';
 import { PointSeries } from './_point_series';
 
@@ -106,8 +107,8 @@ export class LineChart extends PointSeries {
     }
 
     function colorCircle() {
-      const parent = d3.select(this).node().parentNode;
-      const lengthOfParent = d3.select(parent).data()[0].length;
+      const parent = select(this).node().parentNode;
+      const lengthOfParent = select(parent).data()[0].length;
       const isVisible = lengthOfParent === 1;
 
       // If only 1 point exists, show circle
@@ -176,7 +177,7 @@ export class LineChart extends PointSeries {
     const interpolate = this.seriesConfig.interpolate;
     const isHorizontal = this.getCategoryAxis().axisConfig.isHorizontal();
 
-    const line = svg
+    const lineObj = svg
       .append('g')
       .attr('class', 'pathgroup lines')
       .attr('clip-path', 'url(#' + this.baseChart.clipPathId + ')');
@@ -194,16 +195,17 @@ export class LineChart extends PointSeries {
       return yScale(y0 + y);
     }
 
-    line
+    lineObj
       .append('path')
       .attr('data-label', data.label)
       .attr('d', () => {
-        const d3Line = d3.svg
-          .line()
+        const d3Line = line()
           .defined(function (d) {
             return !_.isNull(d.y);
           })
-          .interpolate(interpolate)
+          // TODO: ohltyler look into if curve maps directly
+          // Need to map "linear" string => curveLinear() fn
+          .curve(curveLinear)
           .x(isHorizontal ? cx : cy)
           .y(isHorizontal ? cy : cx);
         return d3Line(data.values);

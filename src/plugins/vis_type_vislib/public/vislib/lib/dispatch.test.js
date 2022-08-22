@@ -29,7 +29,7 @@
  */
 
 import _ from 'lodash';
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import {
   setHTMLElementClientSizes,
   setSVGElementGetBBox,
@@ -52,7 +52,7 @@ describe('Vislib Dispatch Class Test Suite', function () {
   }
 
   function getEls(element, n, type) {
-    return d3.select(element).data(new Array(n)).enter().append(type);
+    return select(element).data(new Array(n)).enter().append(type);
   }
 
   beforeAll(() => {
@@ -116,7 +116,7 @@ describe('Vislib Dispatch Class Test Suite', function () {
         const els = getEls(vis.element, 3, 'div');
         apply(els);
         els.each(function () {
-          expect(d3.select(this).on('event')).toBe(_.noop);
+          expect(select(this).on('event')).toBe(_.noop);
         });
       });
     });
@@ -139,7 +139,7 @@ describe('Vislib Dispatch Class Test Suite', function () {
           const els = getEls(vis.element, 3, 'div');
           apply(els);
           els.each(function () {
-            expect(d3.select(this).on(event)).toBeInstanceOf(Function);
+            expect(select(this).on(event)).toBeInstanceOf(Function);
           });
         });
       });

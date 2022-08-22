@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 import {
   setHTMLElementClientSizes,
@@ -178,7 +178,7 @@ dateHistogramArray.forEach(function (data, i) {
 
     describe('removeAll Method', function () {
       beforeEach(function () {
-        d3.select(vis.element).append('div').attr('class', 'visualize');
+        select(vis.element).append('div').attr('class', 'visualize');
         vis.handler.layout.removeAll(vis.element);
       });
 

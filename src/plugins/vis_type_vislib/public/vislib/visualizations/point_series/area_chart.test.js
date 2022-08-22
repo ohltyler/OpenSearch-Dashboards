@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import $ from 'jquery';
 import {
@@ -125,7 +125,7 @@ _.forOwn(dataTypesArray, function (dataType, dataTypeName) {
       beforeEach(function () {
         vis.handler.charts.forEach(function (chart) {
           path = $(chart.chartEl).find('path')[0];
-          d3selectedPath = d3.select(path)[0][0];
+          d3selectedPath = select(path)[0][0];
 
           // d3 instance of click and hover
           onMouseOver = !!d3selectedPath.__onmouseover;
@@ -151,7 +151,7 @@ _.forOwn(dataTypesArray, function (dataType, dataTypeName) {
         vis.handler.charts.forEach(function (chart) {
           circle = $(chart.chartEl).find('circle')[0];
           brush = $(chart.chartEl).find('.brush');
-          d3selectedCircle = d3.select(circle)[0][0];
+          d3selectedCircle = select(circle)[0][0];
 
           // d3 instance of click and hover
           onBrush = !!brush;

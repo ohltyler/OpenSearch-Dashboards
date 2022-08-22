@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import { Chart } from './_chart';
 import { gaugeTypes } from './gauges/gauge_types';
 
@@ -98,7 +98,7 @@ export class GaugeChart extends Chart {
 
     return function (selection) {
       selection.each(function (data) {
-        const div = d3.select(this);
+        const div = select(this);
         const { width, height } = self.calcGaugeDim(
           gaugeConfig.alignment,
           this,

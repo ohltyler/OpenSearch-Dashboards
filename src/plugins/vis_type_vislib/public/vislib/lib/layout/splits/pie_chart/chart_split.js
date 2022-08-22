@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 
 /*
  * Adds div DOM elements to the `.visWrapper__chart` element based on the data layout.
@@ -38,7 +38,7 @@ import d3 from 'd3';
 
 export function chartSplit(selection) {
   selection.each(function (data) {
-    const div = d3.select(this).attr('class', function () {
+    const div = select(this).attr('class', function () {
       if (data.rows) {
         return 'visWrapper__splitCharts--row';
       } else if (data.columns) {

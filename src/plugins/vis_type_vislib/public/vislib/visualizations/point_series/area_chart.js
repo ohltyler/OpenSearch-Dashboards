@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { area } from 'd3-shape';
 import _ from 'lodash';
 import $ from 'jquery';
 import { PointSeries } from './_point_series';
@@ -131,9 +131,9 @@ export class AreaChart extends PointSeries {
 
     function getArea() {
       if (isHorizontal) {
-        return d3.svg.area().x(x).y0(y0).y1(y1);
+        return area().x(x).y0(y0).y1(y1);
       } else {
-        return d3.svg.area().y(x).x0(y0).x1(y1);
+        return area().y(x).x0(y0).x1(y1);
       }
     }
 

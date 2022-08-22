@@ -30,7 +30,7 @@
 
 import _ from 'lodash';
 import $ from 'jquery';
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import {
   setHTMLElementClientSizes,
   setSVGElementGetBBox,
@@ -150,7 +150,7 @@ describe('Vislib Heatmap Chart Test Suite', function () {
             // listeners, however, I was not able to test for the listener
             // function being present. I will need to update this test
             // in the future.
-            brush: !!d3.select('.brush')[0][0],
+            brush: !!select('.brush')[0][0],
           };
         }
 

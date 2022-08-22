@@ -28,7 +28,8 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { min, max } from 'd3-array';
+import { scaleUtc, scaleOrdinal, scaleLinear } from 'd3-scale';
 import _ from 'lodash';
 import moment from 'moment';
 
@@ -76,19 +77,19 @@ export class AxisScale {
     const ordered = this.ordered;
     const opts = [ordered[extent]];
 
-    let point = d3[extent](data);
+    let point = extent === 'min' ? min(data) : max(data);
     if (this.axisConfig.get('scale.expandLastBucket') && extent === 'max') {
       point = this.addInterval(point);
     }
     opts.push(point);
 
-    return d3[extent](
-      opts.reduce(function (opts, v) {
-        if (!_.isNumber(v)) v = +v;
-        if (!isNaN(v)) opts.push(v);
-        return opts;
-      }, [])
-    );
+    // TODO: ohltyler look into
+    const results = opts.reduce(function (opts, v) {
+      if (!_.isNumber(v)) v = +v;
+      if (!isNaN(v)) opts.push(v);
+      return opts;
+    }, []);
+    return extent === 'min' ? min(results) : max(results);
   }
 
   addInterval(x) {
@@ -151,11 +152,11 @@ export class AxisScale {
   }
 
   getYMin() {
-    return d3.min(this.getAllPoints());
+    return min(this.getAllPoints());
   }
 
   getYMax() {
-    return d3.max(this.getAllPoints());
+    return max(this.getAllPoints());
   }
 
   getExtents() {
@@ -227,14 +228,24 @@ export class AxisScale {
     if (scaleType === 'square root') scaleType = 'sqrt';
 
     if (this.axisConfig.isTimeDomain()) {
-      return d3.time.scale.utc(); // allow time scale
-    }
-    if (this.axisConfig.isOrdinal()) return d3.scale.ordinal();
-    if (typeof d3.scale[scaleType] !== 'function') {
-      return this.throwCustomError(`Axis.getScaleType: ${scaleType} is not a function`);
+      // TODO: ohltyler look into
+      return scaleUtc(); // allow time scale
     }
 
-    return d3.scale[scaleType]();
+    if (this.axisConfig.isOrdinal()) return scaleOrdinal();
+
+    // TODO: ohltyler need some helper method to convert scaleArgType to the fn.
+    // e.g., "linear" string => ref to scaleLinear() fn
+    // old way of using arr indexing to determine fn (d3.scale[scaleType])
+    // is not supported in v4+
+
+    // if (typeof d3.scale[scaleType] !== 'function') {
+    //   return this.throwCustomError(`Axis.getScaleType: ${scaleType} is not a function`);
+    // }
+
+    // for now hardcode as scaleLinear()
+    return scaleLinear();
+    //return d3.scale[scaleType];
   }
 
   canApplyNice() {

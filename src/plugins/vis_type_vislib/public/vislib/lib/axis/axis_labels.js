@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 import { truncateLabel } from '../../components/labels/truncate_labels';
 
@@ -118,7 +118,7 @@ export class AxisLabels {
       const scaleStartPad = 0.5 * (upperBound - scaleWidth);
 
       selection.selectAll('.tick text').text(function (d) {
-        const parentNode = d3.select(this.parentNode).node();
+        const parentNode = select(this.parentNode).node();
         const currentTickCenter = config.isHorizontal()
           ? scaleStartPad + self.axisScale.scale(d)
           : upperBound - scaleStartPad - self.axisScale.scale(d);
@@ -135,7 +135,7 @@ export class AxisLabels {
           currentTickEndEdge >= lastTickStartEdge && currentTickStartEdge <= lastTickEndEdge;
 
         if (outsideUpperBound || outsideLowerBound || overlapsLastTick) {
-          d3.select(this.parentNode).remove();
+          select(this.parentNode).remove();
         } else {
           lastTickStartEdge = currentTickCenter - currentTickHalfSize;
           lastTickEndEdge = currentTickCenter + currentTickHalfSize;
@@ -152,7 +152,7 @@ export class AxisLabels {
     return function (selection) {
       selection.each(function () {
         selection.selectAll('text').attr('style', function () {
-          const currentStyle = d3.select(this).attr('style');
+          const currentStyle = select(this).attr('style');
           return `${currentStyle} font-size: ${config.get('labels.fontSize')};`;
         });
         if (!config.get('labels.show')) selection.selectAll('text').attr('style', 'display: none;');

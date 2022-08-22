@@ -29,7 +29,7 @@
  */
 
 import $ from 'jquery';
-import d3 from 'd3';
+import { select } from 'd3-selection';
 
 /***
  *
@@ -38,7 +38,7 @@ import d3 from 'd3';
  * @returns {text} the updated text
  */
 const truncateLabel = function (text, size) {
-  const node = d3.select(text).node();
+  const node = select(text).node();
   const str = $(node).text();
   if (size === 0) return str;
   if (size >= str.length) return str;

@@ -28,7 +28,8 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
+import { line } from 'd3-shape';
 import { set } from '@elastic/safer-lodash-set';
 import _ from 'lodash';
 
@@ -57,8 +58,7 @@ export class ChartGrid {
         const x1 = isHorizontal ? tick : width;
         const y0 = !isHorizontal ? tick : 0;
         const y1 = !isHorizontal ? tick : height;
-        const d3Line = d3.svg
-          .line()
+        const d3Line = line()
           .x((d) => (isHorizontal ? scale(d[0]) : d[0]))
           .y((d) => (!isHorizontal ? scale(d[1]) : d[1]));
         return d3Line([
@@ -98,8 +98,8 @@ export class ChartGrid {
     return function (selection) {
       if (!self._values) return;
       selection.each(function () {
-        if (self.get('categoryLines')) self.drawCategoryLines(d3.select(this), width, height);
-        if (self.get('valueAxis', false)) self.drawValueLines(d3.select(this), width, height);
+        if (self.get('categoryLines')) self.drawCategoryLines(select(this), width, height);
+        if (self.get('valueAxis', false)) self.drawValueLines(select(this), width, height);
       });
     };
   }

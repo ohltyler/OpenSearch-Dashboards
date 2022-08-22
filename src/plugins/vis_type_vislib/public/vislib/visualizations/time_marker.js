@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import dateMath from '@elastic/datemath';
 
 export class TimeMarker {
@@ -72,7 +72,7 @@ export class TimeMarker {
     if (!self._isTimeBasedChart(selection)) return;
 
     selection.each(function () {
-      d3.select(this)
+      select(this)
         .selectAll('time-marker')
         .data(self.times)
         .enter()

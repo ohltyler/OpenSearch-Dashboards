@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 
 import { chartSplit } from './chart_split';
@@ -159,7 +159,7 @@ describe('Vislib Gauge Split Function Test Suite', function () {
     };
 
     beforeEach(function () {
-      el = d3.select('body').append('div').attr('class', 'visualization').datum(data);
+      el = select('body').append('div').attr('class', 'visualization').datum(data);
     });
 
     afterEach(function () {
@@ -170,7 +170,7 @@ describe('Vislib Gauge Split Function Test Suite', function () {
       let fixture;
 
       beforeEach(function () {
-        fixture = d3.select('.visualization').call(chartSplit);
+        fixture = select('.visualization').call(chartSplit);
       });
 
       afterEach(function () {

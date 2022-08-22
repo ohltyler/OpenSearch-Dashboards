@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 
 /*
  * Adds div DOM elements to the `.visAxis__splitAxes--x` element based on the data layout.
@@ -38,7 +38,7 @@ import d3 from 'd3';
 
 export function xAxisSplit(selection) {
   selection.each(function () {
-    const div = d3.select(this);
+    const div = select(this);
     let columns;
     div
       .selectAll('.x-axis-div')

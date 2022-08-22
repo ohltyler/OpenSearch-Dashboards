@@ -28,8 +28,9 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import d3TagCloud from 'd3-cloud';
+import { scaleLinear, scaleLog, scaleSqrt } from 'd3-scale';
 import { EventEmitter } from 'events';
 
 const ORIENTATIONS = {
@@ -42,9 +43,9 @@ const ORIENTATIONS = {
   },
 };
 const D3_SCALING_FUNCTIONS = {
-  linear: () => d3.scale.linear(),
-  log: () => d3.scale.log(),
-  'square root': () => d3.scale.sqrt(),
+  linear: () => scaleLinear(),
+  log: () => scaleLog(),
+  'square root': () => scaleSqrt(),
 };
 
 export class TagCloud extends EventEmitter {
@@ -53,7 +54,7 @@ export class TagCloud extends EventEmitter {
 
     //DOM
     this._element = domNode;
-    this._d3SvgContainer = d3.select(this._element).append('svg');
+    this._d3SvgContainer = select(this._element).append('svg');
     this._svgGroup = this._d3SvgContainer.append('g');
     this._size = [1, 1];
     this.resize();
@@ -235,10 +236,10 @@ export class TagCloud extends EventEmitter {
           self.emit('select', event);
         },
         mouseover: function () {
-          d3.select(this).style('cursor', 'pointer');
+          select(this).style('cursor', 'pointer');
         },
         mouseout: function () {
-          d3.select(this).style('cursor', 'default');
+          select(this).style('cursor', 'default');
         },
       });
 

@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { scaleUtc } from 'd3-scale';
 import moment from 'moment-timezone';
 import { timeTicks } from './time_ticks';
 
@@ -44,7 +44,8 @@ describe('timeTicks', () => {
   let scale;
 
   beforeEach(() => {
-    scale = d3.time.scale.utc();
+    // TODO: ohltyler look into
+    scale = scaleUtc();
   });
 
   afterEach(() => {

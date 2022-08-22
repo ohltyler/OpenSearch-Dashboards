@@ -29,7 +29,7 @@
  */
 
 import _ from 'lodash';
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import { EventEmitter } from 'events';
 
 import { VislibError } from './errors';
@@ -122,7 +122,7 @@ export class Vis extends EventEmitter {
    * @method destroy
    */
   destroy() {
-    const selection = d3.select(this.element).select('.visWrapper');
+    const selection = select(this.element).select('.visWrapper');
 
     if (this.handler) this._runOnHandler('destroy');
 

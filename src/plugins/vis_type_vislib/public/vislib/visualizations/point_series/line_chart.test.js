@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 import _ from 'lodash';
 import {
@@ -111,7 +111,7 @@ describe('Vislib Line Chart', function () {
           vis.handler.charts.forEach(function (chart) {
             circle = $(chart.chartEl).find('.circle')[0];
             brush = $(chart.chartEl).find('.brush');
-            d3selectedCircle = d3.select(circle)[0][0];
+            d3selectedCircle = select(circle)[0][0];
 
             // d3 instance of click and hover
             onBrush = !!brush;

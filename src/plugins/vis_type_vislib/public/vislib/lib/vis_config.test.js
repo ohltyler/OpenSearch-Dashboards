@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 
 import { VisConfig } from './vis_config';
 import { getMockUiState } from '../../fixtures/mocks';
@@ -96,7 +96,7 @@ describe('Vislib VisConfig Class Test Suite', function () {
   };
 
   beforeEach(() => {
-    el = d3.select('body').append('div').attr('class', 'visWrapper').node();
+    el = select('body').append('div').attr('class', 'visWrapper').node();
 
     visConfig = new VisConfig(
       {

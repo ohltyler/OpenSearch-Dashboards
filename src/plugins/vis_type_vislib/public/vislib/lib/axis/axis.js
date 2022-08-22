@@ -28,7 +28,10 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { stack } from 'd3-shape';
+import { select } from 'd3-selection';
+import { axisBottom } from 'd3-axis';
+import { scaleLinear } from 'd3-scale';
 import _ from 'lodash';
 import $ from 'jquery';
 import { ErrorHandler } from '../_error_handler';
@@ -52,19 +55,18 @@ export class Axis extends ErrorHandler {
     this.axisTitle = new AxisTitle(this.axisConfig);
     this.axisLabels = new AxisLabels(this.axisConfig, this.axisScale);
 
-    this.stack = d3.layout
-      .stack()
-      .x((d) => {
+    this.stack = stack()
+      .keys((d) => {
         return d.x;
       })
-      .y((d) => {
+      .value((d, key) => {
         if (
           typeof this.axisConfig.get('scale.offset') === 'function' &&
           this.axisConfig.get('scale.offset').name === 'expand'
         ) {
-          return Math.abs(d.y);
+          return Math.abs(d[key].y);
         }
-        return d.y;
+        return d[key].y;
       })
       .offset(this.axisConfig.get('scale.offset', 'zero'));
 
@@ -89,7 +91,7 @@ export class Axis extends ErrorHandler {
   render() {
     const elSelector = this.axisConfig.get('elSelector');
     const rootEl = this.axisConfig.get('rootEl');
-    d3.select(rootEl).selectAll(elSelector).call(this.draw());
+    select(rootEl).selectAll(elSelector).call(this.draw());
   }
 
   destroy() {
@@ -104,7 +106,11 @@ export class Axis extends ErrorHandler {
     const position = this.axisConfig.get('position');
     const axisFormatter = this.axisConfig.get('labels.axisFormatter');
 
-    const d3Axis = d3.svg.axis().scale(scale).tickFormat(axisFormatter).orient(position);
+    // TODO: ohltyler look into this. Constructor (axisBottom, axisTop) needs
+    // to be dynamically created based on "position" string defined above
+    // ex: "bottom" string => axisBottom() fn
+    const d3Axis = axisBottom().scale(scale).tickFormat(axisFormatter);
+    // const d3Axis = d3.svg.axis().scale(scale).tickFormat(axisFormatter).orient(position);
 
     if (this.axisConfig.isTimeDomain()) {
       // use custom overwritten tick function on time domains to get nice
@@ -130,7 +136,7 @@ export class Axis extends ErrorHandler {
   }
 
   tickScale(length) {
-    const yTickScale = d3.scale.linear().clamp(true).domain([20, 40, 1000]).range([0, 3, 11]);
+    const yTickScale = scaleLinear().clamp(true).domain([20, 40, 1000]).range([0, 3, 11]);
 
     return Math.ceil(yTickScale(length));
   }
@@ -158,9 +164,9 @@ export class Axis extends ErrorHandler {
         lengths.push(
           (() => {
             if (config.isHorizontal()) {
-              return d3.select(this.parentNode).node().getBBox().height;
+              return select(this.parentNode).node().getBBox().height;
             } else {
-              return d3.select(this.parentNode).node().getBBox().width;
+              return select(this.parentNode).node().getBBox().width;
             }
           })()
         );
@@ -204,7 +210,8 @@ export class Axis extends ErrorHandler {
     const style = config.get('style');
 
     return function (selection) {
-      const n = selection[0].length;
+      // TODO: ohltyler look into
+      const n = selection.nodes()[0].length;
       if (
         config.get('show') &&
         self.axisTitle &&
@@ -214,7 +221,7 @@ export class Axis extends ErrorHandler {
       }
       selection.each(function () {
         const el = this;
-        const div = d3.select(el);
+        const div = select(el);
         const width = $(el).width();
         const height = $(el).height();
         const length = self.getLength(el, n);

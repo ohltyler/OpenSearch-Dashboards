@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { extent } from 'd3-array';
 import _ from 'lodash';
 
 import { injectZeros } from '../components/zero_injection/inject_zeros';
@@ -546,7 +546,7 @@ export class Data {
       const missingMax = d.ordered.max == null;
 
       if (missingMax || missingMin) {
-        const extent = d3.extent(self.xValues());
+        const extent = extent(self.xValues());
         if (missingMin) d.ordered.min = extent[0];
         if (missingMax) d.ordered.max = extent[1];
       }

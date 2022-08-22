@@ -28,7 +28,9 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
+import { arc } from 'd3-shape';
+import { scaleLinear } from 'd3-scale';
 import _ from 'lodash';
 
 import { getHeatmapColors } from '../../../../../charts/public';
@@ -151,8 +153,7 @@ export class MeterGauge {
     this.gaugeConfig.colorsRange.forEach((range) => {
       const color = this.getColorBucket(range.from);
 
-      const scaleArc = d3.svg
-        .arc()
+      const scaleArc = arc()
         .startAngle(angle(range.from))
         .endAngle(angle(range.to))
         .innerRadius(radius)
@@ -196,12 +197,10 @@ export class MeterGauge {
     const maxY = _.max(data.values, 'y').y;
     const min = this.gaugeConfig.colorsRange[0].from;
     const max = _.last(this.gaugeConfig.colorsRange).to;
-    const angle = d3.scale
-      .linear()
+    const angle = scaleLinear()
       .range([minAngle, maxAngle])
       .domain([min, extendRange && max < maxY ? maxY : max]);
-    const radius = d3.scale
-      .linear()
+    const radius = scaleLinear()
       .range([0, maxRadius])
       .domain([this.gaugeConfig.innerSpace + 1, 0]);
 
@@ -224,8 +223,7 @@ export class MeterGauge {
         ? this.gaugeConfig.scale.tickLength * 2
         : -Math.max(bgPadding, gaugePadding) * 2);
 
-    const arc = d3.svg
-      .arc()
+    const d3Arc = arc()
       .startAngle(minAngle)
       .endAngle(function (d) {
         return Math.max(0, Math.min(maxAngle, angle(Math.max(min, d.y))));
@@ -237,8 +235,7 @@ export class MeterGauge {
         return Math.max(0, radius(j) - gaugePadding);
       });
 
-    const bgArc = d3.svg
-      .arc()
+    const bgArc = arc()
       .startAngle(minAngle)
       .endAngle(maxAngle)
       .innerRadius(function (d, i, j) {
@@ -268,7 +265,7 @@ export class MeterGauge {
 
     const series = gauges
       .append('path')
-      .attr('d', arc)
+      .attr('d', d3Arc)
       .attr('class', this.gaugeConfig.outline ? 'visGauge__meter--outline' : undefined)
       .style('fill', (d) => this.getColorBucket(Math.max(min, d.y)));
 
@@ -342,7 +339,7 @@ export class MeterGauge {
 
     if (isTooltip) {
       series.each(function () {
-        const gauge = d3.select(this);
+        const gauge = select(this);
         gauge.call(tooltip.render());
       });
     }

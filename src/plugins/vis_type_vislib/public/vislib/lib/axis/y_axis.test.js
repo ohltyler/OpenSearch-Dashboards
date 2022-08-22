@@ -29,7 +29,7 @@
  */
 
 import _ from 'lodash';
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 
 import { Axis } from './axis';
@@ -96,7 +96,7 @@ function createData(seriesData) {
     .addClass('y-axis-wrapper')
     .get(0);
 
-  el = d3.select(node).datum(data);
+  el = select(node).datum(data);
 
   yAxisDiv = el.append('div').attr('class', 'y-axis-div');
 

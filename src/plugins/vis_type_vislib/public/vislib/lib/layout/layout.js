@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import $ from 'jquery';
 import { layoutTypes } from './layout_types';
@@ -152,7 +152,8 @@ export class Layout {
     }
 
     if (obj.children) {
-      const newParent = childEl[0][0];
+      // TODO: ohltyler look into
+      const newParent = childEl.nodes()[0];
 
       _.forEach(obj.children, function (obj) {
         if (!obj.parent) {
@@ -184,10 +185,10 @@ export class Layout {
       // Create a DOM reference with a d3 selection
       // Need to make sure that the `el` is bound to this object
       // to prevent it from being appended to another Layout
-      el = d3.select(this.el).select(el)[0][0];
+      el = select(this.el).select(el)[0][0];
     }
 
-    return d3.select(el).append(type).attr('class', className);
+    return select(el).append(type).attr('class', className);
   }
 
   /**
@@ -195,9 +196,9 @@ export class Layout {
    *
    * @method removeAll
    * @param el {HTMLElement} Reference to DOM element
-   * @returns {D3.Selection|D3.Transition.Transition} Reference to an empty DOM element
+   * @returns {selection|D3.Transition.Transition} Reference to an empty DOM element
    */
   removeAll(el) {
-    return d3.select(el).selectAll('*').remove();
+    return select(el).selectAll('*').remove();
   }
 }

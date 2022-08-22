@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 
 import { chartSplit } from './chart_split';
@@ -161,7 +161,7 @@ describe('Vislib Split Function Test Suite', function () {
     };
 
     beforeEach(() => {
-      el = d3.select('body').append('div').attr('class', 'visualization').datum(data);
+      el = select('body').append('div').attr('class', 'visualization').datum(data);
     });
 
     afterEach(function () {
@@ -172,7 +172,7 @@ describe('Vislib Split Function Test Suite', function () {
       let fixture;
 
       beforeEach(function () {
-        fixture = d3.select('.visualization').call(chartSplit);
+        fixture = select('.visualization').call(chartSplit);
       });
 
       afterEach(function () {
@@ -200,7 +200,7 @@ describe('Vislib Split Function Test Suite', function () {
         visEl.select('.visAxis__splitTitles--x').call(chartTitleSplit);
         visEl.select('.visAxis__splitTitles--y').call(chartTitleSplit);
 
-        newEl = d3.select('body').append('div').attr('class', 'visWrapper').datum({ series: [] });
+        newEl = select('body').append('div').attr('class', 'visWrapper').datum({ series: [] });
 
         newEl.append('div').attr('class', 'visAxis__splitTitles--x');
         newEl.append('div').attr('class', 'visAxis__splitTitles--y');
@@ -238,8 +238,8 @@ describe('Vislib Split Function Test Suite', function () {
           .append('div')
           .attr('class', 'columns')
           .datum({ columns: [{}, {}] });
-        d3.select('.columns').call(xAxisSplit);
-        divs = d3.selectAll('.x-axis-div')[0];
+        select('.columns').call(xAxisSplit);
+        divs = selectAll('.x-axis-div')[0];
       });
 
       afterEach(function () {
@@ -263,9 +263,9 @@ describe('Vislib Split Function Test Suite', function () {
           .attr('class', 'rows')
           .datum({ rows: [{}, {}] });
 
-        d3.select('.rows').call(yAxisSplit);
+        select('.rows').call(yAxisSplit);
 
-        divs = d3.selectAll('.y-axis-div')[0];
+        divs = selectAll('.y-axis-div')[0];
       });
 
       afterEach(function () {

@@ -29,7 +29,8 @@
  */
 
 import _ from 'lodash';
-import d3 from 'd3';
+import { select } from 'd3-selection';
+import { rgb } from 'd3-color';
 import { isColorDark } from '@elastic/eui/lib/services';
 import { PointSeries } from './_point_series';
 
@@ -218,7 +219,7 @@ export class ColumnChart extends PointSeries {
       .attr('y', isHorizontal ? y : x)
       .attr('height', isHorizontal ? heightFunc : widthFunc);
 
-    const layer = d3.select(bars[0].parentNode);
+    const layer = select(bars[0].parentNode);
     const barLabels = layer.selectAll('text').data(
       chartData.values.filter(function (d) {
         return !_.isNull(d.y);
@@ -227,7 +228,7 @@ export class ColumnChart extends PointSeries {
 
     if (isLabels) {
       const colorFunc = this.handler.data.getColorFunc();
-      const d3Color = d3.rgb(colorFunc(chartData.label));
+      const d3Color = rgb(colorFunc(chartData.label));
       let labelClass;
       if (isColorDark(d3Color.r, d3Color.g, d3Color.b)) {
         labelClass = 'visColumnChart__bar-label--light';
@@ -343,7 +344,7 @@ export class ColumnChart extends PointSeries {
       .attr('y', isHorizontal ? y : x)
       .attr('height', isHorizontal ? heightFunc : widthFunc);
 
-    const layer = d3.select(bars[0].parentNode);
+    const layer = select(bars[0].parentNode);
     const barLabels = layer.selectAll('text').data(
       chartData.values.filter(function (d) {
         return !_.isNull(d.y);

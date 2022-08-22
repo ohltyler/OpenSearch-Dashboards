@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import $ from 'jquery';
 
@@ -104,7 +104,7 @@ describe('Vislib AxisTitle Class Test Suite', function () {
   };
 
   beforeEach(() => {
-    el = d3.select('body').append('div').attr('class', 'visWrapper');
+    el = select('body').append('div').attr('class', 'visWrapper');
 
     el.append('div')
       .attr('class', 'visAxis__column--bottom')

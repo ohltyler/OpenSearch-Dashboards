@@ -29,7 +29,8 @@
  */
 
 import _ from 'lodash';
-import d3 from 'd3';
+import { scaleQuantize } from 'd3-scale';
+import { hcl } from 'd3-color';
 import $ from 'jquery';
 import { EventEmitter } from 'events';
 import { colorUtil } from '../../../maps_legacy/public';
@@ -95,10 +96,10 @@ export class ScaledCirclesMarkers extends EventEmitter {
     const min = _.get(this._featureCollectionMetaData, 'min', 0);
     const max = _.get(this._featureCollectionMetaData, 'max', 1);
 
-    const quantizeDomain = min !== max ? [min, max] : d3.scale.quantize().domain();
+    const quantizeDomain = min !== max ? [min, max] : scaleQuantize().domain();
 
     this._legendColors = this.getLegendColors();
-    this._legendQuantizer = d3.scale.quantize().domain(quantizeDomain).range(this._legendColors);
+    this._legendQuantizer = scaleQuantize().domain(quantizeDomain).range(this._legendColors);
 
     return makeStyleFunction(this._legendColors, quantizeDomain);
   }
@@ -239,11 +240,11 @@ export class ScaledCirclesMarkers extends EventEmitter {
 
 function makeColorDarker(color) {
   const amount = 1.3; //magic number, carry over from earlier
-  return d3.hcl(color).darker(amount).toString();
+  return hcl(color).darker(amount).toString();
 }
 
 function makeStyleFunction(legendColors, quantizeDomain) {
-  const legendQuantizer = d3.scale.quantize().domain(quantizeDomain).range(legendColors);
+  const legendQuantizer = scaleQuantize().domain(quantizeDomain).range(legendColors);
   return (feature) => {
     const value = _.get(feature, 'properties.value');
     const color = legendQuantizer(value);

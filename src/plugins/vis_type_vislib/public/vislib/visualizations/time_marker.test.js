@@ -28,7 +28,9 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
+import { time } from 'd3-time';
+import { min, max } from 'd3-array';
 import $ from 'jquery';
 
 import series from '../../fixtures/mock_data/date_histogram/_series';
@@ -68,14 +70,14 @@ describe('Vislib Time Marker Test Suite', function () {
   let domain;
 
   beforeEach(function () {
-    minDomain = getExtent(series.series, d3.min);
-    maxDomain = getExtent(series.series, d3.max);
+    minDomain = getExtent(series.series, min);
+    maxDomain = getExtent(series.series, max);
     domain = [minDomain, maxDomain];
-    xScale = d3.time.scale().domain(domain).range([0, 500]);
+    xScale = time.scale().domain(domain).range([0, 500]);
     defaultMarker = new TimeMarker(times, xScale, height);
     customMarker = new TimeMarker(myTimes, xScale, height);
 
-    selection = d3.select('body').append('div').attr('class', 'marker');
+    selection = select('body').append('div').attr('class', 'marker');
     selection.datum(series);
   });
 

@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 
 import { dataLabel } from '../lib/_data_label';
@@ -85,7 +85,7 @@ export class Chart {
    * @returns {HTMLElement} Contains the D3 chart
    */
   render() {
-    const selection = d3.select(this.chartEl);
+    const selection = select(this.chartEl);
 
     selection.selectAll('*').remove();
     selection.call(this.draw());
@@ -119,7 +119,7 @@ export class Chart {
    * @method destroy
    */
   destroy() {
-    const selection = d3.select(this.chartEl);
+    const selection = select(this.chartEl);
     this.events.removeAllListeners();
     this.tooltips.forEach(function (tooltip) {
       tooltip.destroy();

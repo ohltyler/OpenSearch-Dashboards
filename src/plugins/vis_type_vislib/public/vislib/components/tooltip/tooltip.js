@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import $ from 'jquery';
 
@@ -205,9 +205,9 @@ Tooltip.prototype.render = function () {
 
     if (
       self.container === undefined ||
-      self.container !== d3.select(self.el).select('.' + self.containerClass)
+      self.container !== select(self.el).select('.' + self.containerClass)
     ) {
-      self.container = d3.select(self.el).select('.' + self.containerClass);
+      self.container = select(self.el).select('.' + self.containerClass);
     }
 
     const $chart = self.$getChart();
@@ -220,7 +220,7 @@ Tooltip.prototype.render = function () {
     }
 
     selection.each(function (d, i) {
-      const element = d3.select(this);
+      const element = select(this);
 
       function render(html) {
         allContents = _.filter(allContents, function (content) {

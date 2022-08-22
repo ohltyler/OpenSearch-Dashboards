@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 
 /*
  * Adds div DOM elements to either the `.visAxis__splitTitles--y` element or the
@@ -40,7 +40,7 @@ import d3 from 'd3';
 
 export function chartTitleSplit(selection, parent) {
   selection.each(function (data) {
-    const div = d3.select(this);
+    const div = select(this);
 
     if (!data.slices) {
       div
@@ -54,14 +54,14 @@ export function chartTitleSplit(selection, parent) {
         .attr('class', 'chart-title');
 
       if (data.rows) {
-        d3.select(parent).select('.visAxis__splitTitles--x').remove();
+        select(parent).select('.visAxis__splitTitles--x').remove();
       } else {
-        d3.select(parent).select('.visAxis__splitTitles--y').remove();
+        select(parent).select('.visAxis__splitTitles--y').remove();
       }
 
       return div;
     }
 
-    return d3.select(this).remove();
+    return select(this).remove();
   });
 }

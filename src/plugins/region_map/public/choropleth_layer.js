@@ -30,7 +30,8 @@
 
 import $ from 'jquery';
 import _ from 'lodash';
-import d3 from 'd3';
+import { scaleQuantize } from 'd3-scale';
+import { hcl } from 'd3-color';
 import { i18n } from '@osd/i18n';
 import * as topojson from 'topojson-client';
 import { getNotifications } from './opensearch_dashboards_services';
@@ -254,8 +255,8 @@ CORS configuration of the server permits requests from the OpenSearch Dashboards
     if (this._metrics && this._metrics.length > 0) {
       const { min, max } = getMinMax(this._metrics);
       this._legendColors = colorUtil.getLegendColors(this._colorRamp);
-      const quantizeDomain = min !== max ? [min, max] : d3.scale.quantize().domain();
-      this._legendQuantizer = d3.scale.quantize().domain(quantizeDomain).range(this._legendColors);
+      const quantizeDomain = min !== max ? [min, max] : scaleQuantize().domain();
+      this._legendQuantizer = scaleQuantize().domain(quantizeDomain).range(this._legendColors);
     }
     this._boundsOfData = styler.getLeafletBounds();
     this.emit('styleChanged', {
@@ -497,7 +498,7 @@ function compareLexicographically(termA, termB) {
 
 function makeColorDarker(color) {
   const amount = 1.3; //magic number, carry over from earlier
-  return d3.hcl(color).darker(amount).toString();
+  return hcl(color).darker(amount).toString();
 }
 
 function getMinMax(data) {

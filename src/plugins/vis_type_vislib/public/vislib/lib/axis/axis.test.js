@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import $ from 'jquery';
 
@@ -112,7 +112,7 @@ describe('Vislib Axis Class Test Suite', function () {
 
   beforeEach(() => {
     mockUiState = getMockUiState();
-    el = d3.select('body').append('div').attr('class', 'visAxis--x').style('height', '40px');
+    el = select('body').append('div').attr('class', 'visAxis--x').style('height', '40px');
 
     fixture = el.append('div').attr('class', 'x-axis-div');
 

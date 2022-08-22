@@ -28,7 +28,8 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
+import { brush, brushX, brushY } from 'd3-brush';
 import { get, pull, rest, size, reduce } from 'lodash';
 import $ from 'jquery';
 import { DIMMING_OPACITY_SETTING } from '../../../common';
@@ -283,7 +284,7 @@ export class Dispatch {
   addEvent(event, callback) {
     return function (selection) {
       selection.each(function () {
-        const element = d3.select(this);
+        const element = select(this);
 
         if (typeof callback === 'function') {
           return element.on(event, callback);
@@ -389,10 +390,10 @@ export class Dispatch {
    * Mouseover Behavior
    *
    * @method addMousePointer
-   * @returns {d3.Selection}
+   * @returns {selection}
    */
   addMousePointer() {
-    return d3.select(this).style('cursor', 'pointer');
+    return select(this).style('cursor', 'pointer');
   }
 
   /**
@@ -418,7 +419,7 @@ export class Dispatch {
   /**
    * Mouseout Behavior
    *
-   * @param element {d3.Selection}
+   * @param element {selection}
    * @method unHighlight
    */
   unHighlight(element) {
@@ -439,24 +440,24 @@ export class Dispatch {
     const isHorizontal = self.handler.categoryAxes[0].axisConfig.isHorizontal();
 
     // Brush scale
-    const brush = d3.svg.brush();
+    const brushObj = brush();
     if (isHorizontal) {
-      brush.x(xScale);
+      brushX(xScale);
     } else {
-      brush.y(xScale);
+      brushY(xScale);
     }
 
-    brush.on('brushend', function brushEnd() {
+    brushObj.on('end', function brushEnd() {
       // Assumes data is selected at the chart level
       // In this case, the number of data objects should always be 1
-      const data = d3.select(this).data()[0];
+      const data = select(this).data()[0];
       const isTimeSeries = data.ordered && data.ordered.date;
 
-      // Allows for brushing on d3.scale.ordinal()
+      // Allows for brushing on scaleOrdinal()
       const selected = xScale
         .domain()
-        .filter((d) => brush.extent()[0] <= xScale(d) && xScale(d) <= brush.extent()[1]);
-      const range = isTimeSeries ? brush.extent() : selected;
+        .filter((d) => brushObj.extent()[0] <= xScale(d) && xScale(d) <= brushObj.extent()[1]);
+      const range = isTimeSeries ? brushObj.extent() : selected;
 
       return self.emit('brush', {
         range,

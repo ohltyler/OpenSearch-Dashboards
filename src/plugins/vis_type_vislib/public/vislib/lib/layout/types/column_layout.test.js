@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 
 import { layoutTypes } from '../layout_types';
@@ -96,7 +96,7 @@ describe('Vislib Column Layout Test Suite', function () {
   };
 
   beforeEach(function () {
-    el = d3.select('body').append('div').attr('class', 'visualization');
+    el = select('body').append('div').attr('class', 'visualization');
     columnLayout = layoutTypes.point_series(el, data);
   });
 

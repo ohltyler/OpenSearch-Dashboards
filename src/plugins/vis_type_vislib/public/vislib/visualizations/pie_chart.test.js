@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 import $ from 'jquery';
 import {
@@ -190,7 +190,7 @@ describe('Vislib PieChart Class Test Suite', function () {
         beforeEach(function () {
           vis.handler.charts.forEach(function (chart) {
             path = $(chart.chartEl).find('path')[0];
-            d3selectedPath = d3.select(path)[0][0];
+            d3selectedPath = select(path)[0][0];
 
             // d3 instance of click and hover
             onClick = !!d3selectedPath.__onclick;
@@ -222,7 +222,7 @@ describe('Vislib PieChart Class Test Suite', function () {
             $(chart.chartEl).find('svg').empty();
             width = $(chart.chartEl).width();
             height = $(chart.chartEl).height();
-            svg = d3.select($(chart.chartEl).find('svg')[0]);
+            svg = select($(chart.chartEl).find('svg')[0]);
             slices = chart.chartData.slices;
             expect(_.isObject(chart.addPath(width, height, svg, slices))).toBe(true);
           });
@@ -240,7 +240,7 @@ describe('Vislib PieChart Class Test Suite', function () {
             $(chart.chartEl).find('svg').empty();
             width = $(chart.chartEl).width();
             height = $(chart.chartEl).height();
-            svg = d3.select($(chart.chartEl).find('svg')[0]);
+            svg = select($(chart.chartEl).find('svg')[0]);
             slices = chart.chartData.slices;
             chart._attr.labels.show = true;
             chart.addPath(width, height, svg, slices);

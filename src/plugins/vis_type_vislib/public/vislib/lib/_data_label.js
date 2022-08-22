@@ -28,14 +28,14 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 /**
  * Creates a string based on the hex color passed in
  *
  * @method dataLabel
- * @param d {Object} object to wrap in d3.select
+ * @param d {Object} object to wrap in select
  * @returns {string} label value
  */
 export function dataLabel(selection, label) {
-  d3.select(selection).attr('data-label', label);
+  select(selection).attr('data-label', label);
 }

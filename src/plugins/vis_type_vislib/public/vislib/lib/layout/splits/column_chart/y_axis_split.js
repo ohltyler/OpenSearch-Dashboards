@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 
 /*
  * Adds div DOM elements to the `.visAxis__splitAxes--y` element based on the data layout.
@@ -39,7 +39,7 @@ import d3 from 'd3';
 // render and get bounding box width
 export function yAxisSplit(selection) {
   selection.each(function () {
-    const div = d3.select(this);
+    const div = select(this);
     let rows;
 
     div

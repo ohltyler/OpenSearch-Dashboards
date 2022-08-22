@@ -29,7 +29,7 @@
  */
 
 import _ from 'lodash';
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 import {
   setHTMLElementClientSizes,
@@ -165,7 +165,7 @@ dataTypesArray.forEach(function (dataType) {
           // listeners, however, I was not able to test for the listener
           // function being present. I will need to update this test
           // in the future.
-          brush: !!d3.select('.brush')[0][0],
+          brush: !!select('.brush')[0][0],
         };
       }
 

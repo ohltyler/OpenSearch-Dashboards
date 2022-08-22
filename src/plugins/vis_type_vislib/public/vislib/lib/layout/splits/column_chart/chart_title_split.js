@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import $ from 'jquery';
 
 /*
@@ -40,7 +40,7 @@ import $ from 'jquery';
  */
 export function chartTitleSplit(selection) {
   selection.each(function (data) {
-    const div = d3.select(this);
+    const div = select(this);
     const parent = $(this).parents('.visWrapper');
 
     if (!data.series) {
@@ -62,6 +62,6 @@ export function chartTitleSplit(selection) {
       return div;
     }
 
-    return d3.select(this).remove();
+    return select(this).remove();
   });
 }

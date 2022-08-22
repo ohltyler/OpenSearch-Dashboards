@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import d3 from 'd3';
+import { select } from 'd3-selection';
 import _ from 'lodash';
 
 import { ErrorHandler } from './_error_handler';
@@ -44,11 +44,11 @@ export class ChartTitle extends ErrorHandler {
   }
 
   render() {
-    const el = d3.select(this.el).select('.chart-title').node();
+    const el = select(this.el).select('.chart-title').node();
     const width = el ? el.clientWidth : 0;
     const height = el ? el.clientHeight : 0;
 
-    return d3.select(this.el).selectAll('.chart-title').call(this.draw(width, height));
+    return select(this.el).selectAll('.chart-title').call(this.draw(width, height));
   }
 
   truncate(size) {
@@ -56,7 +56,7 @@ export class ChartTitle extends ErrorHandler {
 
     return function (selection) {
       selection.each(function () {
-        const text = d3.select(this);
+        const text = select(this);
         const n = text[0].length;
         const maxWidth = (size / n) * 0.9;
         const length = this.getComputedTextLength();
@@ -90,7 +90,7 @@ export class ChartTitle extends ErrorHandler {
 
     return function (selection) {
       selection.each(function () {
-        const div = d3.select(this);
+        const div = select(this);
         const dataType = this.parentNode.__data__.rows ? 'rows' : 'columns';
         const size = dataType === 'rows' ? height : width;
         const txtHtOffset = 11;

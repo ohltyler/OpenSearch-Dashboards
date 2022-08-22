@@ -29,6 +29,8 @@
  */
 
 import d3 from 'd3';
+import { select } from 'd3-selection';
+import { scaleLinear, scaleSqrt } from 'd3-scale';
 import _ from 'lodash';
 import $ from 'jquery';
 import numeral from '@elastic/numeral';
@@ -78,8 +80,8 @@ export class PieChart extends Chart {
    * Adds Events to SVG paths
    *
    * @method addPathEvents
-   * @param element {D3.Selection} Reference to SVG path
-   * @returns {D3.Selection} SVG path with event listeners attached
+   * @param element {selection} Reference to SVG path
+   * @returns {selection} SVG path with event listeners attached
    */
   addPathEvents(element) {
     const events = this.events;
@@ -127,7 +129,7 @@ export class PieChart extends Chart {
    * @param height {Number} Height of SVG
    * @param svg {HTMLElement} Chart SVG
    * @param slices {Object} Chart data
-   * @returns {D3.Selection} SVG with paths attached
+   * @returns {selection} SVG with paths attached
    */
   addPath(width, height, svg, slices) {
     const self = this;
@@ -146,15 +148,16 @@ export class PieChart extends Chart {
     const truncateLabelLength = self._attr.labels.truncate;
     const showOnlyOnLastLevel = self._attr.labels.last_level;
 
-    const partition = d3.layout
+    // this is updated way
+    const partition = d3
       .partition()
       .sort(null)
       .value(function (d) {
         return d.percentOfParent * 100;
       });
 
-    const x = d3.scale.linear().range([0, 2 * Math.PI]);
-    const y = d3.scale.sqrt().range([0, showLabels ? radius * 0.7 : radius]);
+    const x = scaleLinear().range([0, 2 * Math.PI]);
+    const y = scaleSqrt().range([0, showLabels ? radius * 0.7 : radius]);
 
     const startAngle = function (d) {
       return Math.max(0, Math.min(2 * Math.PI, x(d.x)));
@@ -165,8 +168,7 @@ export class PieChart extends Chart {
       return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx)));
     };
 
-    const arc = d3.svg
-      .arc()
+    const d3Arc = arc()
       .startAngle(startAngle)
       .endAngle(endAngle)
       .innerRadius(function (d) {
@@ -182,8 +184,7 @@ export class PieChart extends Chart {
         return Math.max(0, y(d.y + d.dy));
       });
 
-    const outerArc = d3.svg
-      .arc()
+    const outerArc = arc()
       .startAngle(startAngle)
       .endAngle(endAngle)
       .innerRadius(radius * 0.8)
@@ -196,7 +197,7 @@ export class PieChart extends Chart {
       .data(partition.nodes)
       .enter()
       .append('path')
-      .attr('d', arc)
+      .attr('d', d3Arc)
       .attr('class', function (d) {
         if (d.depth === 0) {
           return;
@@ -228,8 +229,7 @@ export class PieChart extends Chart {
         height: svgParentNode.clientHeight,
       };
 
-      const labelLayout = d3.geom
-        .quadtree()
+      const labelLayout = quadtree()
         .extent([
           [-svgBBox.width, -svgBBox.height],
           [svgBBox.width, svgBBox.height],
@@ -248,7 +248,7 @@ export class PieChart extends Chart {
         .append('text')
         .text(function (d) {
           if (d.depth === 0) {
-            d3.select(this.parentNode).remove();
+            select(this.parentNode).remove();
             return;
           }
           if (showValues) {
@@ -270,7 +270,7 @@ export class PieChart extends Chart {
 
           const parentNode = this.parentNode;
           if (showOnlyOnLastLevel && maxDepth !== d.depth) {
-            d3.select(parentNode).remove();
+            select(parentNode).remove();
             return;
           }
 
@@ -312,7 +312,7 @@ export class PieChart extends Chart {
           });
 
           if (conflicts.length) {
-            d3.select(parentNode).remove();
+            select(parentNode).remove();
             return;
           }
 
@@ -341,7 +341,7 @@ export class PieChart extends Chart {
           const x2 = d.position.x > 0 ? d.position.x - 10 : d.position.x + 10;
           const pos2 = [x2, d.position.y - 4];
           pos1[1] = pos2[1];
-          return [arc.centroid(d), pos1, pos2];
+          return [d3Arc.centroid(d), pos1, pos2];
         })
         .attr('class', 'label-line');
     }
@@ -374,7 +374,7 @@ export class PieChart extends Chart {
     return function (selection) {
       selection.each(function (data) {
         const slices = data.slices;
-        const div = d3.select(this);
+        const div = select(this);
         const width = $(this).width();
         const height = $(this).height();
 

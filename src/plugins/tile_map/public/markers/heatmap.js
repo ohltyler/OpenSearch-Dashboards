@@ -29,7 +29,7 @@
  */
 
 import _ from 'lodash';
-import d3 from 'd3';
+import { scaleLinear, scalePow } from 'd3-scale';
 import { EventEmitter } from 'events';
 
 /**
@@ -163,8 +163,7 @@ export class HeatmapMarkers extends EventEmitter {
     // domain (input values) is map zoom (min 1 and max 18)
     // range (output values) is distance in meters
     // used to compare proximity of event latlng to feature latlng
-    const zoomScale = d3.scale
-      .linear()
+    const zoomScale = scaleLinear()
       .domain([1, 4, 7, 10, 13, 16, 18])
       .range([1000000, 300000, 100000, 15000, 2000, 150, 50]);
 
@@ -181,7 +180,7 @@ export class HeatmapMarkers extends EventEmitter {
       showTip = true;
     }
 
-    d3.scale.pow().exponent(0.2).domain([1, 18]).range([1500000, 50]);
+    scalePow().exponent(0.2).domain([1, 18]).range([1500000, 50]);
     return showTip;
   }
 }

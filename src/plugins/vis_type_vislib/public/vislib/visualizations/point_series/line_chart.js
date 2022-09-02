@@ -217,9 +217,76 @@ export class LineChart extends PointSeries {
     return line;
   }
 
-  // TODO: add a new group of annotations based on the x-value from anomalies
-  addAnnotations(svg, data) {
+  // Takes in data and filters it out to collect the events and extract the timestamps.
+  // Currently hardcoded to collect anomaly data.
+  // Then, creates a very hacky annotation via a 'line' element, and some basic functionality
+  // to display some tooltip when the mouse hovers over it.
+  addAnnotations(svgElem, data) {
     console.log('adding annotations');
+
+    const filteredData = this.getAdFilteredData([data]);
+
+    // Currently just parsing out the first anomaly value
+    const thresholdValue = filteredData[0].values[0].x;
+
+    const isHorizontal = this.getValueAxis().axisConfig.isHorizontal();
+    const categoryAxisDomain = this.getCategoryAxis().axisScale.getDomain(data.values.length);
+    const xScale = this.getCategoryAxis().getScale();
+    const svgParentWidth = svgElem[0][0].attributes.width.value;
+    const svgParentHeight = svgElem[0][0].attributes.height.value;
+
+    const thresholdLineWidth = '10';
+    let thresholdLineStyle = '0';
+    const lineColor = 'black';
+
+    function x(x) {
+      return xScale(x);
+    }
+
+    // If this annotation is within the x-value bounds: append it to chart svg
+    if (
+      categoryAxisDomain &&
+      categoryAxisDomain[0] <= thresholdValue &&
+      categoryAxisDomain[1] >= thresholdValue
+    ) {
+      svgElem
+        .append('line')
+        .attr('id', 'lineAnnotation')
+        .attr('x1', isHorizontal ? 0 : x(thresholdValue))
+        .attr('y1', isHorizontal ? x(thresholdValue) : 0)
+        .attr('x2', isHorizontal ? svgParentWidth : x(thresholdValue))
+        .attr('y2', isHorizontal ? x(thresholdValue) : svgParentHeight)
+        .attr('stroke-width', thresholdLineWidth)
+        .attr('stroke-dasharray', thresholdLineStyle)
+        .attr('stroke', lineColor)
+        .attr('opacity', 0.2);
+
+      // create a tooltip
+      var tooltip = d3
+        .select('.chart')
+        .append('div')
+        .style('z-index', 100)
+        .style('position', 'fixed')
+        .style('visibility', 'hidden')
+        .style('top', '500px')
+        .style('left', '200px')
+        .text('Some anomaly metadata');
+
+      // basic event handling
+      d3.select('#lineAnnotation')
+        .on('mouseover', function () {
+          console.log('mouseover triggered');
+          return tooltip.style('visibility', 'visible');
+        })
+        .on('mousemove', function () {
+          console.log('mousemove triggered');
+          return tooltip.style('visibility', 'visible');
+        })
+        .on('mouseout', function () {
+          console.log('mouseout triggered');
+          return tooltip.style('visibility', 'hidden');
+        });
+    }
   }
 
   getAdFilteredData(data) {
@@ -246,23 +313,28 @@ export class LineChart extends PointSeries {
     return function (selection) {
       selection.each(function () {
         const svg = self.chartEl.append('g');
-        svg.data([self.chartData]);
 
-        // currently I can filter out data that's AD-specific.
-        // Then, I can add some annotations that are only applied
-        // to these data points. Will need to figure out ways to
-        // pass down plugin functionality via some vis config fields
-        const filteredData =
-          self.chartData.id == 'ad' ? self.getAdFilteredData([self.chartData]) : self.chartData;
+        // Currently we are passing the AD data as a separate timeseries on the chart.
+        // The annotations are added by iterating through the AD timeseries data and pulling out
+        // datapoints with non-undefined y values, indicating an anomaly. This is a hacky soln,
+        // and the anomaly data instead should be passed in a different way via some annotation
+        // interface. A starting point could be just passing an array of timestamps, where each
+        // timestamp indicates an event - e.g., an anomaly.
+        // This annotation data can be passed via some field in the vis config, or some other dedicated
+        // config. All of the config data is currently accessed via 'this.handler.visConfig' - see
+        // addCircles as an example.
+        const isAdData = self.chartData.id == 'ad';
 
-        if (self.seriesConfig.drawLinesBetweenPoints) {
-          self.addLine(svg, filteredData);
-        }
-        const circles = self.addCircles(svg, self.chartData);
-        self.addCircleEvents(circles);
-
-        if (self.thresholdLineOptions.show) {
-          self.addThresholdLine(self.chartEl);
+        if (isAdData) {
+          self.addAnnotations(self.chartEl, self.chartData);
+        } else {
+          svg.data([self.chartData]);
+          self.addLine(svg, self.chartData);
+          const circles = self.addCircles(svg, self.chartData);
+          self.addCircleEvents(circles);
+          if (self.thresholdLineOptions.show) {
+            self.addThresholdLine(self.chartEl);
+          }
         }
 
         self.events.emit('rendered', {

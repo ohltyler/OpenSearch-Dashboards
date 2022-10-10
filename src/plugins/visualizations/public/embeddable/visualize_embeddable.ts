@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import _, { get } from 'lodash';
+import _, { get, isEmpty } from 'lodash';
 import { Subscription } from 'rxjs';
 import * as Rx from 'rxjs';
 import { i18n } from '@osd/i18n';
@@ -54,8 +54,13 @@ import {
   IExpressionLoaderParams,
   ExpressionsStart,
   ExpressionRenderError,
+  AugmentVisData,
 } from '../../../expressions/public';
-import { buildPipeline } from '../legacy/build_pipeline';
+import {
+  buildPipeline,
+  getFeatureAnywhereSavedObjs,
+  buildPipelineFromFeatureAnywhereSavedObjs,
+} from '../legacy/build_pipeline';
 import { Vis, SerializedVis } from '../vis';
 import { getExpressions, getUiActions } from '../services';
 import { VIS_EVENT_TO_TRIGGER } from './events';
@@ -64,7 +69,7 @@ import { TriggerId } from '../../../ui_actions/public';
 import { SavedObjectAttributes } from '../../../../core/types';
 import { AttributeService } from '../../../dashboard/public';
 import { SavedVisualizationsLoader } from '../saved_visualizations';
-import { VisSavedObject } from '../types';
+import { VisSavedObject, VisParams, AugmentVisFields } from '../types';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
 
@@ -393,11 +398,36 @@ export class VisualizeEmbeddable
     }
     this.abortController = new AbortController();
     const abortController = this.abortController;
-    this.expression = await buildPipeline(this.vis, {
-      timefilter: this.timefilter,
-      timeRange: this.timeRange,
-      abortSignal: this.abortController!.signal,
-    });
+
+    // Collect any augment vis data from plugin expr fns (e.g., anomalies/alerts)
+    let augmentVisData = {} as AugmentVisData;
+    if (this.vis.params.type === 'line') {
+      const featureAnywhereSavedObjs = getFeatureAnywhereSavedObjs(this.vis.id);
+      if (!isEmpty(featureAnywhereSavedObjs) && this.handler && !abortController.signal.aborted) {
+        const augmentVisConfigPipeline = buildPipelineFromFeatureAnywhereSavedObjs(
+          featureAnywhereSavedObjs
+        );
+        const augmentVisConfigPipelineInput = {
+          type: 'augment_vis_data',
+          data: {} as AugmentVisFields,
+        };
+        augmentVisData = (await this.handler.run(
+          augmentVisConfigPipeline,
+          augmentVisConfigPipelineInput,
+          expressionParams as Record<string, unknown>
+        )) as AugmentVisData;
+      }
+    }
+    // Add the optional arg to pass in any augment vis data
+    this.expression = await buildPipeline(
+      this.vis,
+      {
+        timefilter: this.timefilter,
+        timeRange: this.timeRange,
+        abortSignal: this.abortController!.signal,
+      },
+      augmentVisData.data
+    );
 
     if (this.handler && !abortController.signal.aborted) {
       this.handler.update(this.expression, expressionParams);

@@ -28,11 +28,23 @@
  * under the License.
  */
 
-import { get } from 'lodash';
+import { get, isEmpty } from 'lodash';
 import moment from 'moment';
-import { formatExpression, SerializedFieldFormat } from '../../../../plugins/expressions/public';
+import {
+  formatExpression,
+  SerializedFieldFormat,
+  buildExpressionFunction,
+  buildExpression,
+  ExpressionAstFunctionBuilder,
+} from '../../../../plugins/expressions/public';
 import { IAggConfig, search, TimefilterContract } from '../../../../plugins/data/public';
-import { Vis, VisParams } from '../types';
+import {
+  Vis,
+  VisParams,
+  FeatureAnywhereSavedObject,
+  FeatureAnywhereFunctionDefinition,
+  AugmentVisFields,
+} from '../types';
 const { isDateHistogramBucketAggConfig } = search.aggs;
 
 interface SchemaConfigParams {
@@ -191,11 +203,13 @@ export const getSchemas = <TVisParams>(
   return schemas;
 };
 
-export const prepareJson = (variable: string, data?: object): string => {
+export const prepareJson = (variable: string, data?: object | string): string => {
   if (data === undefined) {
     return '';
   }
-  return `${variable}='${JSON.stringify(data).replace(/\\/g, `\\\\`).replace(/'/g, `\\'`)}' `;
+  return typeof data === 'string'
+    ? `${variable}='${data}'`
+    : `${variable}='${JSON.stringify(data).replace(/\\/g, `\\\\`).replace(/'/g, `\\'`)}' `;
 };
 
 export const escapeString = (data: string): string => {
@@ -398,7 +412,23 @@ export const buildVislibDimensions = async (vis: any, params: BuildPipelineParam
   return dimensions;
 };
 
-export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
+export const buildPipeline = async (
+  vis: Vis,
+  params: BuildPipelineParams,
+  augmentVisFields?: AugmentVisFields
+) => {
+  // TODO: The new vega lite line chart will have an implemented toExpressionAst, where the vis data
+  // is converted to a vega chart definition. We can propagate any augment vis data fields
+  // into toExpressionAst as an arg, where it can be parsed in the vis type's implemented toExpressionAst
+  if (vis.type.name === 'line') {
+    console.log('vis line chart found');
+    if (augmentVisFields) {
+      console.log('augment vis fields found: ', augmentVisFields);
+      const vegaStringDefn = convertAnnotationsToVegaDefn(augmentVisFields);
+      console.log('vega string defn: ', vegaStringDefn);
+    }
+  }
+
   const { indexPattern, searchSource } = vis.data;
   const query = searchSource!.getField('query');
   const filters = searchSource!.getField('filter');
@@ -461,4 +491,54 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
   }
 
   return pipeline;
+};
+
+// returns any feature-anywhere saved objects associated with this vis
+export const getFeatureAnywhereSavedObjs = (
+  visId: string | undefined
+): FeatureAnywhereSavedObject[] => {
+  // for now use a dummy saved obj. in the future, use saved obj apis to
+  // fetch and sort through any relevant feature-anywhere saved objs based on visId arg
+  return [
+    {
+      expressionFnName: 'overlay_anomalies',
+      expressionFnArgs: {
+        detectorId: '7uDr5oMBJSTDLAJPKn3R',
+        // somethingElse: {
+        //   another: 'field',
+        // },
+      },
+    },
+    // {
+    //   expressionFnName: 'overlay_alerts',
+    //   expressionFnArgs: {
+    //     monitorId: 'xyz789',
+    //   },
+    // },
+  ] as FeatureAnywhereSavedObject[];
+};
+
+// parses out an array of feature-anywhere saved object into a pipeline string
+export const buildPipelineFromFeatureAnywhereSavedObjs = (
+  objs: FeatureAnywhereSavedObject[]
+): string => {
+  const featureAnywhereExpressionFns = [] as ExpressionAstFunctionBuilder<
+    FeatureAnywhereFunctionDefinition
+  >[];
+
+  objs.forEach((obj: FeatureAnywhereSavedObject) => {
+    featureAnywhereExpressionFns.push(
+      buildExpressionFunction<FeatureAnywhereFunctionDefinition>(
+        obj.expressionFnName,
+        obj.expressionFnArgs
+      )
+    );
+  });
+
+  const ast = buildExpression(featureAnywhereExpressionFns).toAst();
+  return formatExpression(ast);
+};
+
+const convertAnnotationsToVegaDefn = (augmentVisFields: AugmentVisFields): string => {
+  return '';
 };

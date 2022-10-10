@@ -28,7 +28,11 @@
  * under the License.
  */
 
-import { ExpressionAstExpression } from 'src/plugins/expressions';
+import {
+  ExpressionAstExpression,
+  ExpressionFunctionDefinition,
+  VisConfig,
+} from 'src/plugins/expressions';
 import { SavedObject } from '../../saved_objects/public';
 import {
   AggConfigOptions,
@@ -88,3 +92,26 @@ export type VisToExpressionAst<TVisParams = VisParams> = (
   vis: Vis<TVisParams>,
   params: VisToExpressionAstParams
 ) => ExpressionAstExpression;
+
+export type FeatureAnywhereSavedObject = {
+  expressionFnName: string;
+  expressionFnArgs: { [x: string]: any };
+};
+
+export type FeatureAnywhereFunctionDefinition = ExpressionFunctionDefinition<
+  string,
+  VisConfig,
+  any,
+  Promise<VisConfig>
+>;
+
+export type Annotation = {
+  name: string;
+  timestamp: number;
+};
+
+// We keep a generic interface in case of further types of augmentation is introduced
+// (e.g., a new dimension, augmenting existing dimensions or data points, etc.)
+export interface AugmentVisFields {
+  annotations?: Annotation[];
+}

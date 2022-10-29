@@ -419,15 +419,12 @@ export class VisualizeEmbeddable
       }
     }
     // Add the optional arg to pass in any augment vis data
-    this.expression = await buildPipeline(
-      this.vis,
-      {
-        timefilter: this.timefilter,
-        timeRange: this.timeRange,
-        abortSignal: this.abortController!.signal,
-      },
-      augmentVisData.data
-    );
+    this.expression = await buildPipeline(this.vis, {
+      timefilter: this.timefilter,
+      timeRange: this.timeRange,
+      abortSignal: this.abortController!.signal,
+      augmentVisFields: augmentVisData.data,
+    });
 
     if (this.handler && !abortController.signal.aborted) {
       this.handler.update(this.expression, expressionParams);

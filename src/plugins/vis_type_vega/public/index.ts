@@ -40,3 +40,4 @@ export function plugin(initializerContext: PluginInitializerContext<ConfigSchema
 export { createVegaVisualizationLine } from './vega_visualization_line';
 export { VegaVisualizationDependencies } from './plugin';
 export { VegaExpressionFunctionDefinition } from './vega_fn';
+export { VegaSpecExpressionFunctionDefinition } from './vega_spec';

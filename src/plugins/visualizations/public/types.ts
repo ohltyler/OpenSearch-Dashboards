@@ -86,6 +86,7 @@ export interface VisToExpressionAstParams {
   timefilter: TimefilterContract;
   timeRange?: any;
   abortSignal?: AbortSignal;
+  augmentVisFields?: AugmentVisFields;
 }
 
 export type VisToExpressionAst<TVisParams = VisParams> = (

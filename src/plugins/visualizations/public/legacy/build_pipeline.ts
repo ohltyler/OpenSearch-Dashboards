@@ -41,6 +41,7 @@ import { IAggConfig, search, TimefilterContract } from '../../../../plugins/data
 import {
   Vis,
   VisParams,
+  VisToExpressionAstParams,
   FeatureAnywhereSavedObject,
   FeatureAnywhereFunctionDefinition,
   AugmentVisFields,
@@ -93,11 +94,9 @@ interface BuildVisConfigFunction {
   [key: string]: buildVisConfigFunction;
 }
 
-export interface BuildPipelineParams {
-  timefilter: TimefilterContract;
-  timeRange?: any;
-  abortSignal?: AbortSignal;
-}
+// These contain the same fields. For now there's no extra fields
+// needed for BuildPipelineParams so the obj is empty.
+export interface BuildPipelineParams extends VisToExpressionAstParams {}
 
 const vislibCharts: string[] = [
   'area',
@@ -412,23 +411,7 @@ export const buildVislibDimensions = async (vis: any, params: BuildPipelineParam
   return dimensions;
 };
 
-export const buildPipeline = async (
-  vis: Vis,
-  params: BuildPipelineParams,
-  augmentVisFields?: AugmentVisFields
-) => {
-  // TODO: The new vega lite line chart will have an implemented toExpressionAst, where the vis data
-  // is converted to a vega chart definition. We can propagate any augment vis data fields
-  // into toExpressionAst as an arg, where it can be parsed in the vis type's implemented toExpressionAst
-  if (vis.type.name === 'line') {
-    console.log('vis line chart found');
-    if (augmentVisFields) {
-      console.log('augment vis fields found: ', augmentVisFields);
-      const vegaStringDefn = convertAnnotationsToVegaDefn(augmentVisFields);
-      console.log('vega string defn: ', vegaStringDefn);
-    }
-  }
-
+export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
   const { indexPattern, searchSource } = vis.data;
   const query = searchSource!.getField('query');
   const filters = searchSource!.getField('filter');
@@ -537,8 +520,4 @@ export const buildPipelineFromFeatureAnywhereSavedObjs = (
 
   const ast = buildExpression(featureAnywhereExpressionFns).toAst();
   return formatExpression(ast);
-};
-
-const convertAnnotationsToVegaDefn = (augmentVisFields: AugmentVisFields): string => {
-  return '';
 };

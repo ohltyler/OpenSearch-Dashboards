@@ -482,8 +482,9 @@ export const getFeatureAnywhereSavedObjs = (
 ): FeatureAnywhereSavedObject[] => {
   // for now use a dummy saved obj. in the future, use saved obj apis to
   // fetch and sort through any relevant feature-anywhere saved objs based on visId arg
-  return [
+  const savedObjectsFound = [
     {
+      visId: '0d0b6850-56ee-11ed-9043-0370c51f768c',
       expressionFnName: 'overlay_anomalies',
       expressionFnArgs: {
         detectorId: '7uDr5oMBJSTDLAJPKn3R',
@@ -499,6 +500,8 @@ export const getFeatureAnywhereSavedObjs = (
     //   },
     // },
   ] as FeatureAnywhereSavedObject[];
+
+  return savedObjectsFound.filter((savedObject) => savedObject.visId === visId);
 };
 
 // parses out an array of feature-anywhere saved object into a pipeline string

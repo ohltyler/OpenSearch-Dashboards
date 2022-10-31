@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import { get } from 'lodash';
+import { get, isEmpty } from 'lodash';
 import { i18n } from '@osd/i18n';
 import {
   ExecutionContext,
@@ -38,6 +38,7 @@ import {
 } from '../../expressions/public';
 import { VegaVisualizationDependencies } from './plugin';
 import { AugmentVisFields } from '../../visualizations/public';
+import { VegaSpec } from './data_model/types';
 // import { createVegaRequestHandler } from './vega_request_handler';
 // import { VegaInspectorAdapters } from './vega_inspector/index';
 // import { TimeRange, Query } from '../../data/public';
@@ -58,11 +59,65 @@ export type VegaSpecExpressionFunctionDefinition = ExpressionFunctionDefinition<
   //ExecutionContext<unknown, VegaInspectorAdapters>
 >;
 
-const addAugmentVisFields = (spec: string): string => {
+/**
+ * TODO: this fn is using the raw datatable and not taking into account other
+ * vis-related config (like a disabled metric/row, setting explicit timerange, etc).
+ * In the old vislib workflow, this was handled by (1) creating dimensions in build_pipeline, and
+ * (2) converting the tabular data using vis params + dimensions in vis_type_vislib_vis_fn.
+ * We will need to do similar transformations either within here, or somewhere else in
+ * the render workflow.
+ */
+const createSpecFromDatatable = (datatable: OpenSearchDashboardsDatatable): object => {
+  // TODO: we can try to use VegaSpec type but it is currently very outdated, where many
+  // of the fields and sub-fields don't have other optional params that we want for customizing.
+  // For now, we make this more loosely-typed by just specifying it as a generic object.
+  let spec = {} as any;
+  //let spec = {} as VegaSpec;
+
+  // hardcoding logic for now to get it to render
+  const timeField = get(datatable, 'columns[0].id', null);
+  const valueField = get(datatable, 'columns[1].id', null);
+  const timeFieldName = get(datatable, 'columns[0].name', null);
+  const valueFieldName = get(datatable, 'columns[1].name', null);
+
+  // TODO: update this to v5 when available
+  spec.$schema = 'https://vega.github.io/schema/vega-lite/v4.json';
+  spec.data = {
+    values: datatable.rows,
+  };
+  spec.config = {
+    view: {
+      stroke: null,
+    },
+  };
+  spec.mark = 'line';
+  spec.encoding = {
+    x: {
+      axis: {
+        title: timeFieldName,
+        grid: false,
+      },
+      field: timeField,
+      type: 'temporal',
+    },
+    y: {
+      axis: {
+        title: valueFieldName,
+        grid: false,
+      },
+      field: valueField,
+      type: 'quantitative',
+    },
+  };
+
+  return spec;
+};
+
+const augmentSpec = (spec: object): object => {
   let newSpec = spec;
 
   /**
-   * TODO: add logic for adding augment vis fields (e.g., anomalies)
+   * TODO: add logic for adding augment vis fields (alerts/anomalies)
    * into the spec string
    */
 
@@ -86,62 +141,22 @@ export const createVegaSpecFn = (
     },
   },
   async fn(input, args, context) {
-    let spec = '';
+    console.log('datatable: ', input);
 
-    /**
-     * TODO: add conversion from datatable (input) -> string spec (output) here
-     * may want to handle this in a separate handler similar to vislib expr fn
-     */
-
-    // setting dummy spec for now
-    spec = `{
-      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
-      "data": {
-        "values": [
-          {"x": 1, "y": 2},
-          {"x": 2, "y": 3},
-          {"x": 3, "y": 10},
-          {"x": 4, "y": 3},
-          {"x": 5, "y": 4},
-          {"x": 6, "y": 4},
-          {"x": 7, "y": 8},
-          {"x": 8, "y": 4},
-          {"x": 9, "y": 5},
-          {"x": 10, "y": 4}
-        ]
-      },
-      "config": {
-        "circle": {"color": "blue", "size": 50},
-        "concat": {"spacing": 0},
-        "view": {"stroke": null}
-      },
-      "mark": "line",
-      "encoding": {
-        "x": {
-          "axis": {
-            "domain": false,
-            "grid": false,
-            "ticks": false,
-            "labels": false,
-            "title": null
-          },
-          "field": "x",
-          "type": "quantitative",
-          "scale": {"domain": [0, 10]}
-        },
-        "y": {"field": "y", "type": "quantitative"}
-      }
-    }`;
+    // creating initial spec
+    let spec = createSpecFromDatatable(input);
 
     // adding any augment vis fields (e.g., anomalies, alerts) to the spec string
     const augmentVisFields = args.augmentVisFields
       ? (JSON.parse(args.augmentVisFields) as AugmentVisFields)
-      : null;
-    if (augmentVisFields) {
+      : {};
+    if (!isEmpty(augmentVisFields)) {
       console.log('augment vis fields found - adding to spec...');
-      spec = addAugmentVisFields(spec);
+      spec = augmentSpec(spec);
     }
 
-    return spec;
+    //console.log('spec as string: ', JSON.stringify(spec));
+
+    return JSON.stringify(spec);
   },
 });

@@ -97,6 +97,9 @@ export type VisToExpressionAst<TVisParams = VisParams> = (
 export type FeatureAnywhereSavedObject = {
   expressionFnName: string;
   expressionFnArgs: { [x: string]: any };
+  // visId may be removed. using temporarily to associate a
+  // feature anywhere saved object to a particular vis
+  visId?: string;
 };
 
 export type FeatureAnywhereFunctionDefinition = ExpressionFunctionDefinition<

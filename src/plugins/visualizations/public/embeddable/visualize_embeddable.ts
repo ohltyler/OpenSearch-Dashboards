@@ -423,7 +423,7 @@ export class VisualizeEmbeddable
       timefilter: this.timefilter,
       timeRange: this.timeRange,
       abortSignal: this.abortController!.signal,
-      augmentVisFields: augmentVisData.data,
+      augmentVisFields: !isEmpty(augmentVisData) ? augmentVisData.data : ({} as AugmentVisFields),
     });
 
     if (this.handler && !abortController.signal.aborted) {

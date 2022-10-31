@@ -111,7 +111,7 @@ export type FeatureAnywhereFunctionDefinition = ExpressionFunctionDefinition<
 
 export type Annotation = {
   name: string;
-  timestamp: number;
+  timestamps: number[];
 };
 
 // We keep a generic interface in case of further types of augmentation is introduced

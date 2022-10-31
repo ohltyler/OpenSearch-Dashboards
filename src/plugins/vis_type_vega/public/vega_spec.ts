@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import { get, isEmpty } from 'lodash';
+import { isEmpty, cloneDeep } from 'lodash';
 import { i18n } from '@osd/i18n';
 import {
   ExecutionContext,
@@ -74,12 +74,6 @@ const createSpecFromDatatable = (datatable: OpenSearchDashboardsDatatable): obje
   let spec = {} as any;
   //let spec = {} as VegaSpec;
 
-  // hardcoding logic for now to get it to render
-  const timeField = get(datatable, 'columns[0].id', null);
-  const valueField = get(datatable, 'columns[1].id', null);
-  const timeFieldName = get(datatable, 'columns[0].name', null);
-  const valueFieldName = get(datatable, 'columns[1].name', null);
-
   // TODO: update this to v5 when available
   spec.$schema = 'https://vega.github.io/schema/vega-lite/v4.json';
   spec.data = {
@@ -89,37 +83,124 @@ const createSpecFromDatatable = (datatable: OpenSearchDashboardsDatatable): obje
     view: {
       stroke: null,
     },
-  };
-  spec.mark = 'line';
-  spec.encoding = {
-    x: {
-      axis: {
-        title: timeFieldName,
-        grid: false,
-      },
-      field: timeField,
-      type: 'temporal',
+    concat: {
+      spacing: 0,
     },
-    y: {
-      axis: {
-        title: valueFieldName,
-        grid: false,
-      },
-      field: valueField,
-      type: 'quantitative',
+    // the circle timeline representing annotations
+    circle: {
+      color: 'blue',
+    },
+    // the vertical line when user hovers over an annotation circle
+    rule: {
+      color: 'red',
     },
   };
+
+  // assuming the first column in the datatable represents the x-axis / the time-related field.
+  // need to confirm if that's always the case or not
+  spec.layer = [] as any[];
+  const xAxis = datatable.columns[0];
+  datatable.columns.forEach((column, index) => {
+    if (index !== 0) {
+      spec.layer.push({
+        mark: 'line',
+        encoding: {
+          x: {
+            axis: {
+              title: xAxis.name,
+              grid: false,
+              ticks: false,
+              labels: false,
+            },
+            field: xAxis.id,
+            type: 'temporal',
+          },
+          y: {
+            axis: {
+              title: column.name,
+              grid: false,
+            },
+            field: column.id,
+            type: 'quantitative',
+          },
+        },
+      });
+    }
+  });
 
   return spec;
 };
 
-const augmentSpec = (spec: object): object => {
-  let newSpec = spec;
+const augmentTable = (
+  datatable: OpenSearchDashboardsDatatable,
+  augmentVisFields: AugmentVisFields
+): OpenSearchDashboardsDatatable => {
+  let augmentedTable = cloneDeep(datatable);
+  /**
+   * Adding annotations into the correct x-axis key (the time bucket)
+   * based on the table.
+   */
+  const annotations = augmentVisFields.annotations;
+  if (annotations !== undefined && !isEmpty(annotations)) {
+    annotations.forEach((annotation) => {
+      console.log('adding column for annotation: ', annotation.name);
+      augmentedTable.columns.push({
+        // TODO: how to persist an ID? can we re-use name field?
+        id: 'some-annotation-id',
+        name: annotation.name,
+      });
+
+      // TODO: bin the timestamps to the closest x-axis key, adding
+      // an entry for this annotation type. Note that there may be multiple
+      // per bin, e.g., 2 anomalies binning to the same timestamp, so make
+      // sure to check for existing & increment if necessary
+      annotation.timestamps.forEach((timestamp) => {
+        augmentedTable.rows[0] = {
+          ...augmentedTable.rows[0],
+          'some-annotation-id': 1,
+        };
+      });
+    });
+  }
+
+  return augmentedTable;
+};
+
+const augmentSpec = (
+  datatable: OpenSearchDashboardsDatatable,
+  spec: object,
+  augmentVisFields: AugmentVisFields
+): object => {
+  let newSpec = cloneDeep(spec) as any;
 
   /**
-   * TODO: add logic for adding augment vis fields (alerts/anomalies)
-   * into the spec string
+   * It is expected at this point that all of the data is in one layer
+   * We need to do several things to the spec:
+   * 1. add a rule to the existing layer for showing lines on the chart if a dot is hovered on
+   * 2. add a second view below the existing one for showing a timeline of dots
+   *    representing different annotations (alerts/anomalies)
    */
+
+  // assuming the first column in the datatable represents the x-axis / the time-related field.
+  // need to confirm if that's always the case or not
+  // const xAxis = datatable.columns[0];
+  // newSpec.layer.push({
+  //   mark: 'rule',
+  //   encoding: {
+  //     x: {
+  //       field: xAxis.id,
+  //       type: 'temporal',
+  //     },
+  //   },
+  // });
+
+  // this can be uncommented later, when we are ready to add both
+  // vconcat layers
+  // newSpec.vconcat = [] as any[];
+  // newSpec.vconcat.push({
+  //   layer: newSpec.layer,
+  // });
+  // delete newSpec.layer;
 
   return newSpec;
 };
@@ -141,18 +222,25 @@ export const createVegaSpecFn = (
     },
   },
   async fn(input, args, context) {
-    console.log('datatable: ', input);
+    let table = cloneDeep(input);
 
-    // creating initial spec
-    let spec = createSpecFromDatatable(input);
-
-    // adding any augment vis fields (e.g., anomalies, alerts) to the spec string
     const augmentVisFields = args.augmentVisFields
       ? (JSON.parse(args.augmentVisFields) as AugmentVisFields)
       : {};
+
+    // if we have augmented fields, update the source datatable first
     if (!isEmpty(augmentVisFields)) {
-      console.log('augment vis fields found - adding to spec...');
-      spec = augmentSpec(spec);
+      table = augmentTable(table, augmentVisFields);
+    }
+
+    console.log('table: ', table);
+
+    // creating initial spec from table
+    let spec = createSpecFromDatatable(table);
+
+    // if we have augmented fields, update the spec
+    if (!isEmpty(augmentVisFields)) {
+      spec = augmentSpec(table, spec, augmentVisFields);
     }
 
     //console.log('spec as string: ', JSON.stringify(spec));

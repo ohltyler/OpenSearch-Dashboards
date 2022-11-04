@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import { isEmpty, cloneDeep } from 'lodash';
+import { get, isEmpty, cloneDeep } from 'lodash';
 import { i18n } from '@osd/i18n';
 import {
   ExecutionContext,
@@ -131,34 +131,77 @@ const createSpecFromDatatable = (datatable: OpenSearchDashboardsDatatable): obje
   return spec;
 };
 
+/**
+ * Adding annotations into the correct x-axis key (the time bucket)
+ * based on the table. As of now only annotations are supported
+ */
 const augmentTable = (
   datatable: OpenSearchDashboardsDatatable,
   augmentVisFields: AugmentVisFields
 ): OpenSearchDashboardsDatatable => {
   let augmentedTable = cloneDeep(datatable);
-  /**
-   * Adding annotations into the correct x-axis key (the time bucket)
-   * based on the table.
-   */
+
+  // assuming the first column in the datatable represents the x-axis / the time-related field.
+  // need to confirm if that's always the case or not
+  const xAxis = datatable.columns[0];
   const annotations = augmentVisFields.annotations;
   if (annotations !== undefined && !isEmpty(annotations)) {
     annotations.forEach((annotation) => {
-      console.log('adding column for annotation: ', annotation.name);
+      // TODO: how to persist an ID? can we re-use name field?
+      const annotationId = annotation.name + '-annotation-id';
       augmentedTable.columns.push({
-        // TODO: how to persist an ID? can we re-use name field?
-        id: 'some-annotation-id',
+        id: annotationId,
         name: annotation.name,
       });
 
-      // TODO: bin the timestamps to the closest x-axis key, adding
-      // an entry for this annotation type. Note that there may be multiple
-      // per bin, e.g., 2 anomalies binning to the same timestamp, so make
-      // sure to check for existing & increment if necessary
-      annotation.timestamps.forEach((timestamp) => {
+      // special case: no rows
+      if (augmentedTable.rows.length == 0) {
+        console.log('no rows in datatable - cannot add any annotations');
+        return;
+      }
+
+      // special case: only one row - put all annotations in the one bucket
+      if (augmentedTable.rows.length == 1) {
         augmentedTable.rows[0] = {
           ...augmentedTable.rows[0],
-          'some-annotation-id': 1,
+          annotationId: annotation.timestamps.length,
         };
+      }
+
+      // Bin the timestamps to the closest x-axis key, adding
+      // an entry for this annotation ID.
+      let rowIndex = 0;
+      const sortedTimestamps = annotation.timestamps.sort((n1, n2) => n1 - n2);
+      sortedTimestamps.forEach((timestamp) => {
+        while (rowIndex < augmentedTable.rows.length - 1) {
+          const smallerVal = augmentedTable.rows[rowIndex][xAxis.id] as number;
+          const higherVal = augmentedTable.rows[rowIndex + 1][xAxis.id] as number;
+          let rowIndexToInsert;
+
+          // timestamp is on the left bounds of the chart
+          if (timestamp <= smallerVal) {
+            rowIndexToInsert = rowIndex;
+
+            // timestamp is in between the right 2 buckets. now need to determine which one it is closer to
+          } else if (timestamp <= higherVal) {
+            const smallerValDiff = Math.abs(timestamp - smallerVal);
+            const higherValDiff = Math.abs(timestamp - higherVal);
+            rowIndexToInsert = smallerValDiff <= higherValDiff ? rowIndex : rowIndex + 1;
+          }
+
+          // timestamp is on the right bounds of the chart
+          else if (rowIndex + 1 == augmentedTable.rows.length - 1) {
+            rowIndexToInsert = rowIndex + 1;
+          } else {
+            rowIndex += 1;
+            continue;
+          }
+
+          // inserting the value. increment if the mapping/property already exists
+          augmentedTable.rows[rowIndexToInsert][annotationId] =
+            (get(augmentedTable.rows[rowIndexToInsert], annotationId, 0) as number) + 1;
+          break;
+        }
       });
     });
   }
@@ -233,7 +276,7 @@ export const createVegaSpecFn = (
       table = augmentTable(table, augmentVisFields);
     }
 
-    console.log('table: ', table);
+    console.log('augmented table: ', table);
 
     // creating initial spec from table
     let spec = createSpecFromDatatable(table);

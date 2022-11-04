@@ -37,7 +37,7 @@ import {
   Render,
 } from '../../expressions/public';
 import { VegaVisualizationDependencies } from './plugin';
-import { AugmentVisFields } from '../../visualizations/public';
+import { AugmentVisFields, Annotation } from '../../visualizations/public';
 import { VegaSpec } from './data_model/types';
 // import { createVegaRequestHandler } from './vega_request_handler';
 // import { VegaInspectorAdapters } from './vega_inspector/index';
@@ -145,8 +145,16 @@ const augmentTable = (
   // need to confirm if that's always the case or not
   const xAxis = datatable.columns[0];
   const annotations = augmentVisFields.annotations;
+
+  // Uncomment below to test with alert annotations as well
+  // const annotations = get(augmentVisFields, 'annotations', []) as Annotation[];
+  // annotations.push({
+  //   name: 'alert',
+  //   timestamps: [665458100000],
+  // } as Annotation);
+
   if (annotations !== undefined && !isEmpty(annotations)) {
-    annotations.forEach((annotation) => {
+    annotations.every((annotation) => {
       // TODO: how to persist an ID? can we re-use name field?
       const annotationId = annotation.name + '-annotation-id';
       augmentedTable.columns.push({
@@ -156,16 +164,17 @@ const augmentTable = (
 
       // special case: no rows
       if (augmentedTable.rows.length == 0) {
-        console.log('no rows in datatable - cannot add any annotations');
-        return;
+        return false;
       }
 
-      // special case: only one row - put all annotations in the one bucket
+      // special case: only one row - put all timestamps for this annotation
+      // in the one bucket and iterate to the next one
       if (augmentedTable.rows.length == 1) {
         augmentedTable.rows[0] = {
           ...augmentedTable.rows[0],
           annotationId: annotation.timestamps.length,
         };
+        return false;
       }
 
       // Bin the timestamps to the closest x-axis key, adding
@@ -203,6 +212,8 @@ const augmentTable = (
           break;
         }
       });
+      // iterate to the next annotation
+      return true;
     });
   }
 

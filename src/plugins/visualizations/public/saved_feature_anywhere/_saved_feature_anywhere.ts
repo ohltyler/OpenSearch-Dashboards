@@ -108,7 +108,7 @@ export function createSavedFeatureAnywhereClass(services: SavedObjectOpenSearchD
       if (typeof opts !== 'object') {
         opts = { id: opts };
       }
-      // Gives our SavedWorkspace the properties of a SavedObject
+      // Add in the other fields maybe? Not sure if they will be filled automaticall upon creation
       super({
         type: SavedFeatureAnywhere.type,
         mapping: SavedFeatureAnywhere.mapping,
@@ -127,10 +127,11 @@ export function createSavedFeatureAnywhereClass(services: SavedObjectOpenSearchD
         // then back to a saved object type.
         // if fields need to be specially handled, can be done here.
         // (see _saved_vis.ts for examples)
-        afterOpenSearchResp: async (savedObject: SavedObject) => {
-          const savedFeatureAnywhere = (savedObject as any) as ISavedFeatureAnywhere;
-          return (savedFeatureAnywhere as any) as SavedObject;
-        },
+        // it is also commented as 'only used by visualizations' in the fn def
+        // afterOpenSearchResp: async (savedObject: SavedObject) => {
+        //   const savedFeatureAnywhere = (savedObject as any) as ISavedFeatureAnywhere;
+        //   return (savedFeatureAnywhere as any) as SavedObject;
+        // },
       });
       // probably set to false since this saved obj should be hidden by default
       this.showInRecentlyAccessed = false;

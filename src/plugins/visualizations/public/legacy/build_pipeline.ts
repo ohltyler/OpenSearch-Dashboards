@@ -44,7 +44,7 @@ import {
   VisToExpressionAstParams,
   FeatureAnywhereSavedObject,
   FeatureAnywhereFunctionDefinition,
-  AugmentVisFields,
+  VisLayers,
 } from '../types';
 import { SavedFeatureAnywhereLoader } from '../saved_feature_anywhere';
 const { isDateHistogramBucketAggConfig } = search.aggs;
@@ -482,39 +482,44 @@ export const getFeatureAnywhereSavedObjs = async (
   visId: string | undefined,
   loader: SavedFeatureAnywhereLoader | undefined
 ): Promise<FeatureAnywhereSavedObject[]> => {
-  let savedFeatureAnywhere = {} as any;
-  try {
-    savedFeatureAnywhere = (await loader?.get({
-      savedObjectId: visId,
-    })) as FeatureAnywhereSavedObject;
-  } catch (e) {
-    console.log('no saved obj found: ', e);
-  }
+  // TODO: uncomment below lines when we have valid feature-anywhere saved objs to fetch
+  // let savedFeatureAnywhere = {} as any;
+  // console.log('visId to fetch: ', visId);
+  // try {
+  //   // TODO: use 'find'/'findAll' instead of 'get'. 'get' will create
+  //   // if the passed ID doesn't exist. we only want to search here in our case.
+  //   // use 'get' in the plugin-created components where the actual creation will take place.
+  //   savedFeatureAnywhere = await loader?.find();
+  // } catch (e) {
+  //   console.log('no saved obj found: ', e);
+  // }
 
-  console.log('feature anywhere saved obj: ', savedFeatureAnywhere);
+  // console.log('saved obj results: ', savedFeatureAnywhere);
 
   // for now use a dummy saved obj. in the future, use saved obj apis to
   // fetch and sort through any relevant feature-anywhere saved objs based on visId arg
-  // const savedObjectsFound = [
-  //   {
-  //     visId: '0d0b6850-56ee-11ed-9043-0370c51f768c',
-  //     expressionFnName: 'overlay_anomalies',
-  //     expressionFnArgs: {
-  //       detectorId: '7uDr5oMBJSTDLAJPKn3R',
-  //       // somethingElse: {
-  //       //   another: 'field',
-  //       // },
-  //     },
-  //   },
-  //   // {
-  //   //   expressionFnName: 'overlay_alerts',
-  //   //   expressionFnArgs: {
-  //   //     monitorId: 'xyz789',
-  //   //   },
-  //   // },
-  // ] as FeatureAnywhereSavedObject[];
+  const savedObjectsFound = ([
+    {
+      id: '<some-feature-anywhere-id',
+      pluginResourceId: '7uDr5oMBJSTDLAJPKn3R',
+      savedObjectId: '0d0b6850-56ee-11ed-9043-0370c51f768c',
+      augmentExpressionFn: {
+        type: 'PointInTimeEventsVisLayer',
+        name: 'overlay_anomalies',
+        args: {
+          detectorId: '7uDr5oMBJSTDLAJPKn3R',
+        },
+      },
+    },
 
-  const savedObjectsFound = [] as FeatureAnywhereSavedObject[];
+    // {
+    //   expressionFnName: 'overlay_alerts',
+    //   expressionFnArgs: {
+    //     monitorId: 'xyz789',
+    //   },
+    // },
+  ] as any[]) as FeatureAnywhereSavedObject[];
+
   return savedObjectsFound.filter((savedObject) => savedObject.savedObjectId === visId);
 };
 
@@ -532,8 +537,8 @@ export const buildPipelineFromFeatureAnywhereSavedObjs = (
   objs.forEach((obj: FeatureAnywhereSavedObject) => {
     featureAnywhereExpressionFns.push(
       buildExpressionFunction<FeatureAnywhereFunctionDefinition>(
-        obj.expressionFnName,
-        obj.expressionFnArgs
+        obj.augmentExpressionFn.name,
+        obj.augmentExpressionFn.args
       )
     );
   });

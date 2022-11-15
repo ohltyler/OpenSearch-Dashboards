@@ -59,7 +59,7 @@ export const toExpressionAst = (vis: Vis, params: any) => {
 
   // adding the new expr fn here that takes the datatable and converts to a vega spec
   const vegaSpecFn = buildExpressionFunction<VegaSpecExpressionFunctionDefinition>('vega_spec', {
-    augmentVisFields: JSON.stringify(params.augmentVisFields),
+    visLayers: JSON.stringify(params.visLayers),
   });
   const vegaSpecFnExpressionBuilder = buildExpression([vegaSpecFn]);
 

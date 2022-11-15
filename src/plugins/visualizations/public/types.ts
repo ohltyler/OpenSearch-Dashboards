@@ -86,7 +86,7 @@ export interface VisToExpressionAstParams {
   timefilter: TimefilterContract;
   timeRange?: any;
   abortSignal?: AbortSignal;
-  augmentVisFields?: AugmentVisFields;
+  visLayers?: VisLayers;
 }
 
 export type VisToExpressionAst<TVisParams = VisParams> = (
@@ -100,24 +100,6 @@ export type VisToExpressionAst<TVisParams = VisParams> = (
  * Creating interfaces & types for the vis layer data models & saved objects.
  */
 //##################################################################################
-
-// TODO: remove this
-// export type FeatureAnywhereSavedObject = {
-//   expressionFnName: string;
-//   expressionFnArgs: { [x: string]: any };
-//   visId?: string;
-// };
-
-// TODO: remove this
-export type Annotation = {
-  name: string;
-  timestamps: number[];
-};
-
-// TODO: remove this
-export interface AugmentVisFields {
-  annotations?: Annotation[];
-}
 
 /**
  * Vis layering data models

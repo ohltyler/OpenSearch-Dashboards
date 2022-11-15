@@ -63,8 +63,10 @@ export {
   ISavedVis,
   VisSavedObject,
   VisResponseValue,
-  AugmentVisFields,
-  Annotation,
+  VisLayer,
+  VisLayers,
+  PointInTimeEventsVisLayer,
+  PointInTimeEvent,
 } from './types';
 export { ExprVisAPIEvents } from './expressions/vis';
 export { VisualizationListItem } from './vis_types/vis_type_alias_registry';

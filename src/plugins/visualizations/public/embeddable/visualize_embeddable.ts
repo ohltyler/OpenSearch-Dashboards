@@ -69,6 +69,7 @@ import { TriggerId } from '../../../ui_actions/public';
 import { SavedObjectAttributes } from '../../../../core/types';
 import { AttributeService } from '../../../dashboard/public';
 import { SavedVisualizationsLoader } from '../saved_visualizations';
+import { SavedFeatureAnywhereLoader } from '../saved_feature_anywhere';
 import { VisSavedObject, VisParams, AugmentVisFields } from '../types';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
@@ -132,6 +133,7 @@ export class VisualizeEmbeddable
     VisualizeByReferenceInput
   >;
   private savedVisualizationsLoader?: SavedVisualizationsLoader;
+  private savedFeatureAnywhereLoader?: SavedFeatureAnywhereLoader;
 
   constructor(
     timefilter: TimefilterContract,
@@ -143,6 +145,8 @@ export class VisualizeEmbeddable
       VisualizeByReferenceInput
     >,
     savedVisualizationsLoader?: SavedVisualizationsLoader,
+    // TODO: this may be moved to a standalone plugin
+    savedFeatureAnywhereLoader?: SavedFeatureAnywhereLoader,
     parent?: IContainer
   ) {
     super(
@@ -165,6 +169,7 @@ export class VisualizeEmbeddable
     this.vis.uiState.on('reload', this.reload);
     this.attributeService = attributeService;
     this.savedVisualizationsLoader = savedVisualizationsLoader;
+    this.savedFeatureAnywhereLoader = savedFeatureAnywhereLoader;
 
     this.autoRefreshFetchSubscription = timefilter
       .getAutoRefreshFetch$()
@@ -402,7 +407,10 @@ export class VisualizeEmbeddable
     // Collect any augment vis data from plugin expr fns (e.g., anomalies/alerts)
     let augmentVisData = {} as AugmentVisData;
     if (this.vis.params.type === 'line') {
-      const featureAnywhereSavedObjs = getFeatureAnywhereSavedObjs(this.vis.id);
+      const featureAnywhereSavedObjs = await getFeatureAnywhereSavedObjs(
+        this.vis.id,
+        this.savedFeatureAnywhereLoader
+      );
       if (!isEmpty(featureAnywhereSavedObjs) && this.handler && !abortController.signal.aborted) {
         const augmentVisConfigPipeline = buildPipelineFromFeatureAnywhereSavedObjs(
           featureAnywhereSavedObjs

@@ -37,7 +37,12 @@ import {
   Render,
 } from '../../expressions/public';
 import { VegaVisualizationDependencies } from './plugin';
-import { VisLayers, PointInTimeEventsVisLayer } from '../../visualizations/public';
+import {
+  VisLayer,
+  VisLayers,
+  PointInTimeEventsVisLayer,
+  isPointInTimeEventsVisLayer,
+} from '../../visualizations/public';
 import { VegaSpec } from './data_model/types';
 // import { createVegaRequestHandler } from './vega_request_handler';
 // import { VegaInspectorAdapters } from './vega_inspector/index';
@@ -272,16 +277,20 @@ export const createVegaSpecFn = (
   async fn(input, args, context) {
     let table = cloneDeep(input);
 
+    const allVisLayers = (args.visLayers
+      ? (JSON.parse(args.visLayers) as VisLayers)
+      : []) as VisLayers;
+
     // currently only supporting point-in-time events vis layers.
     // future vis layer types will need to be separated here and processed
     // differently.
-    const visLayers = (args.visLayers
-      ? (JSON.parse(args.visLayers) as VisLayers)
-      : []) as PointInTimeEventsVisLayer[];
+    const pointInTimeEventsVisLayers = allVisLayers.filter((visLayer) =>
+      isPointInTimeEventsVisLayer(visLayer)
+    ) as PointInTimeEventsVisLayer[];
 
-    // if we have augmented fields, update the source datatable first
-    if (!isEmpty(visLayers)) {
-      table = addPointInTimeEventsLayersToTable(table, visLayers);
+    // if we have point-in-time events vis layers, update the source datatable first
+    if (!isEmpty(pointInTimeEventsVisLayers)) {
+      table = addPointInTimeEventsLayersToTable(table, pointInTimeEventsVisLayers);
     }
 
     console.log('augmented table: ', table);
@@ -289,9 +298,9 @@ export const createVegaSpecFn = (
     // creating initial spec from table
     let spec = createSpecFromDatatable(table);
 
-    // if we have augmented fields, update the spec
-    if (!isEmpty(visLayers)) {
-      spec = addPointInTimeEventsLayersToSpec(table, spec, visLayers);
+    // if we have point-in-time events vis layers, update the spec
+    if (!isEmpty(pointInTimeEventsVisLayers)) {
+      spec = addPointInTimeEventsLayersToSpec(table, spec, pointInTimeEventsVisLayers);
     }
 
     // console.log('spec as string: ', JSON.stringify(spec));

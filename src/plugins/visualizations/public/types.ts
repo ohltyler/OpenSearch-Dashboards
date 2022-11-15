@@ -104,22 +104,27 @@ export type VisToExpressionAst<TVisParams = VisParams> = (
 /**
  * Vis layering data models
  */
-export type VisLayer = {
+export interface VisLayer {
   name: string;
-};
+}
 
 export type VisLayers = VisLayer[];
 
-export type PointInTimeEvent = {
+export interface PointInTimeEvent {
   timestamp: number;
   // this may be set at layer-level rather than event-level
   metadata: {};
-};
+}
 
-export type PointInTimeEventsVisLayer = VisLayer & {
+export interface PointInTimeEventsVisLayer extends VisLayer {
   events: PointInTimeEvent[];
   format: string;
   //format: PointInTimeEventFormat;
+}
+
+// used to determine what vis layer's interface is being implemented
+export const isPointInTimeEventsVisLayer = (obj: any) => {
+  return 'events' in obj;
 };
 
 /**

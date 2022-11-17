@@ -68,7 +68,10 @@ export {
   PointInTimeEventsVisLayer,
   PointInTimeEvent,
   isPointInTimeEventsVisLayer,
+  FeatureAnywhereSavedObject,
 } from './types';
 export { ExprVisAPIEvents } from './expressions/vis';
 export { VisualizationListItem } from './vis_types/vis_type_alias_registry';
 export { VISUALIZE_ENABLE_LABS_SETTING } from '../common/constants';
+// TODO: this may move to a standalone plugin
+export { createSavedFeatureAnywhereLoader } from './saved_feature_anywhere';

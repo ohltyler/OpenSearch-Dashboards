@@ -35,6 +35,7 @@
  *
  * NOTE: It's a type of SavedObject, but specific to feature anywhere.
  */
+import { get } from 'lodash';
 import {
   createSavedObjectClass,
   SavedObject,
@@ -43,7 +44,7 @@ import {
 import { IIndexPattern } from '../../../../plugins/data/public';
 import { ISavedFeatureAnywhere, SerializedFeatureAnywhere } from '../types';
 
-// currently no special conversion is needed
+// converting from obj to serialized (string)
 export const convertToSerializedFeatureAnywhere = (
   savedFeatureAnywhere: ISavedFeatureAnywhere
 ): SerializedFeatureAnywhere => {
@@ -61,13 +62,13 @@ export const convertToSerializedFeatureAnywhere = (
     description,
     pluginResourceId,
     savedObjectId,
-    augmentExpressionFn,
+    augmentExpressionFn: JSON.stringify(augmentExpressionFn),
     version,
   };
 };
 
-// currently no special conversion is needed
-export const convertFromSerializedVis = (
+// converting from serialized (string) to obj
+export const convertFromSerializedFeatureAnywhere = (
   serializedFeatureAnywhere: SerializedFeatureAnywhere
 ): ISavedFeatureAnywhere => {
   const {
@@ -84,7 +85,7 @@ export const convertFromSerializedVis = (
     description,
     pluginResourceId,
     savedObjectId,
-    augmentExpressionFn,
+    augmentExpressionFn: JSON.parse(augmentExpressionFn),
     version,
   };
 };
@@ -98,7 +99,7 @@ export function createSavedFeatureAnywhereClass(services: SavedObjectOpenSearchD
       description: 'text',
       pluginResourceId: 'text',
       savedObjectId: 'text',
-      augmentExpressionFn: 'json',
+      augmentExpressionFn: 'object',
       version: 'integer',
     };
     // Order these fields to the top, the rest are alphabetical
@@ -108,17 +109,16 @@ export function createSavedFeatureAnywhereClass(services: SavedObjectOpenSearchD
       if (typeof opts !== 'object') {
         opts = { id: opts };
       }
-      // Add in the other fields maybe? Not sure if they will be filled automaticall upon creation
       super({
         type: SavedFeatureAnywhere.type,
         mapping: SavedFeatureAnywhere.mapping,
         id: (opts.id as string) || '',
         indexPattern: opts.indexPattern as IIndexPattern,
         defaults: {
-          description: '',
-          pluginResourceId: '',
-          savedObjectId: '',
-          augmentExpressionFn: '{}',
+          description: get(opts, 'description', ''),
+          pluginResourceId: get(opts, 'pluginResourceId', ''),
+          savedObjectId: get(opts, 'savedObjectId', ''),
+          augmentExpressionFn: get(opts, 'augmentExpressionFn', {}),
           version: 1,
         },
         // currently we have no special conversion logic, and we

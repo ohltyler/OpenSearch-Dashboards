@@ -139,6 +139,7 @@ export interface ISavedFeatureAnywhere {
   version?: number;
 }
 
+// TODO: possibly rename to VisLayerExpressionFn?
 export interface AugmentExpressionFn {
   // string may be ok - need to confirm
   //type: VisLayer;
@@ -155,7 +156,7 @@ export interface SerializedFeatureAnywhere {
   description?: string;
   pluginResourceId: string;
   savedObjectId: string;
-  augmentExpressionFn: AugmentExpressionFn;
+  augmentExpressionFn: string;
   version?: number;
 }
 

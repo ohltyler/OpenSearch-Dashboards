@@ -482,17 +482,23 @@ export const getFeatureAnywhereSavedObjs = async (
   visId: string | undefined,
   loader: SavedFeatureAnywhereLoader | undefined
 ): Promise<FeatureAnywhereSavedObject[]> => {
-  // TODO: uncomment below lines when we have valid feature-anywhere saved objs to fetch
-  // let savedFeatureAnywhere = {} as any;
-  // console.log('visId to fetch: ', visId);
-  // try {
-  //   // TODO: use 'find'/'findAll' instead of 'get'. 'get' will create
-  //   // if the passed ID doesn't exist. we only want to search here in our case.
-  //   // use 'get' in the plugin-created components where the actual creation will take place.
-  //   savedFeatureAnywhere = await loader?.find();
-  // } catch (e) {
-  //   console.log('no saved obj found: ', e);
-  // }
+  // TODO: below try/catch block works for fetching saved objects right now.
+  // need to change saved object data model to use references instead of hard-coded
+  // savedObjectId. When that is done, update the findAll fns here to fetch the
+  // relevant saved objects
+  try {
+    // Example 1: this gets feature anywhere objects by ID. We probably don't need/want
+    // this here, since we will only have saved object ID at this point.
+    // all fields are present (e.g, augmentExpressionFn) & returns the actual SavedFeatureAnywhere obj
+    //const response = await loader?.get('ba5ef2f0-66b2-11ed-998e-b142764c0a2d');
+    // Example 2: finds all feature-anywhere objs. Passing no args, which defaults to searching
+    // over a wildcard string to return all of the saved objects. All fields are present
+    // (e.g., augmentExpressionFn), just need to parse response (parse the 'hits' field)
+    //const response = await loader?.find();
+    //console.log('response: ', response);
+  } catch (e) {
+    console.log('no saved obj found: ', e);
+  }
 
   // console.log('saved obj results: ', savedFeatureAnywhere);
 
@@ -502,7 +508,7 @@ export const getFeatureAnywhereSavedObjs = async (
     {
       id: '<some-feature-anywhere-id',
       pluginResourceId: '7uDr5oMBJSTDLAJPKn3R',
-      savedObjectId: '0d0b6850-56ee-11ed-9043-0370c51f768c',
+      savedObjectId: '2d8ad070-66b1-11ed-998e-b142764c0a2d',
       augmentExpressionFn: {
         type: 'PointInTimeEventsVisLayer',
         name: 'overlay_anomalies',

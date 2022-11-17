@@ -180,37 +180,45 @@ const addPointInTimeEventsLayersToTable = (
       const sortedTimestamps = visLayer.events
         .map((event) => event.timestamp)
         .sort((n1, n2) => n1 - n2);
-      sortedTimestamps.forEach((timestamp) => {
-        while (rowIndex < augmentedTable.rows.length - 1) {
-          const smallerVal = augmentedTable.rows[rowIndex][xAxis.id] as number;
-          const higherVal = augmentedTable.rows[rowIndex + 1][xAxis.id] as number;
-          let rowIndexToInsert;
 
-          // timestamp is on the left bounds of the chart
-          if (timestamp <= smallerVal) {
-            rowIndexToInsert = rowIndex;
+      if (sortedTimestamps.length > 0) {
+        sortedTimestamps.forEach((timestamp) => {
+          while (rowIndex < augmentedTable.rows.length - 1) {
+            const smallerVal = augmentedTable.rows[rowIndex][xAxis.id] as number;
+            const higherVal = augmentedTable.rows[rowIndex + 1][xAxis.id] as number;
+            let rowIndexToInsert;
 
-            // timestamp is in between the right 2 buckets. now need to determine which one it is closer to
-          } else if (timestamp <= higherVal) {
-            const smallerValDiff = Math.abs(timestamp - smallerVal);
-            const higherValDiff = Math.abs(timestamp - higherVal);
-            rowIndexToInsert = smallerValDiff <= higherValDiff ? rowIndex : rowIndex + 1;
+            // timestamp is on the left bounds of the chart
+            if (timestamp <= smallerVal) {
+              rowIndexToInsert = rowIndex;
+
+              // timestamp is in between the right 2 buckets. now need to determine which one it is closer to
+            } else if (timestamp <= higherVal) {
+              const smallerValDiff = Math.abs(timestamp - smallerVal);
+              const higherValDiff = Math.abs(timestamp - higherVal);
+              rowIndexToInsert = smallerValDiff <= higherValDiff ? rowIndex : rowIndex + 1;
+            }
+
+            // timestamp is on the right bounds of the chart
+            else if (rowIndex + 1 == augmentedTable.rows.length - 1) {
+              rowIndexToInsert = rowIndex + 1;
+            } else {
+              rowIndex += 1;
+              continue;
+            }
+
+            // inserting the value. increment if the mapping/property already exists
+            augmentedTable.rows[rowIndexToInsert][visLayerId] =
+              (get(augmentedTable.rows[rowIndexToInsert], visLayerId, 0) as number) + 1;
+            break;
           }
-
-          // timestamp is on the right bounds of the chart
-          else if (rowIndex + 1 == augmentedTable.rows.length - 1) {
-            rowIndexToInsert = rowIndex + 1;
-          } else {
-            rowIndex += 1;
-            continue;
-          }
-
-          // inserting the value. increment if the mapping/property already exists
-          augmentedTable.rows[rowIndexToInsert][visLayerId] =
-            (get(augmentedTable.rows[rowIndexToInsert], visLayerId, 0) as number) + 1;
-          break;
-        }
-      });
+        });
+      } else {
+        // if no data found, remove the column to prevent vega-lite errors
+        // TODO: make sure this is done on the original dataset too, not just
+        // these vis-layer-related ones
+        augmentedTable.columns.pop();
+      }
       // iterate to the next annotation
       return true;
     });

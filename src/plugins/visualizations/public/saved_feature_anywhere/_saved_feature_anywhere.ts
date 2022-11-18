@@ -43,6 +43,7 @@ import {
 } from '../../../saved_objects/public';
 import { IIndexPattern } from '../../../../plugins/data/public';
 import { ISavedFeatureAnywhere, SerializedFeatureAnywhere } from '../types';
+import { extractReferences, injectReferences } from './saved_feature_anywhere_references';
 
 // converting from obj to serialized (string)
 export const convertToSerializedFeatureAnywhere = (
@@ -93,12 +94,16 @@ export const convertFromSerializedFeatureAnywhere = (
 export function createSavedFeatureAnywhereClass(services: SavedObjectOpenSearchDashboardsServices) {
   const SavedObjectClass = createSavedObjectClass(services);
 
+  // savedObjectRefType & savedObjectId are needed for initial creation of this obj.
+  // then, when actually saving, extractReferences will construct a reference field
+  // using the type and ID specified here.
   class SavedFeatureAnywhere extends SavedObjectClass {
     public static type: string = 'feature-anywhere';
     public static mapping: Record<string, string> = {
       description: 'text',
       pluginResourceId: 'text',
-      savedObjectId: 'text',
+      savedObjectRefType: 'keyword',
+      savedObjectId: 'keyword',
       augmentExpressionFn: 'object',
       version: 'integer',
     };
@@ -112,11 +117,14 @@ export function createSavedFeatureAnywhereClass(services: SavedObjectOpenSearchD
       super({
         type: SavedFeatureAnywhere.type,
         mapping: SavedFeatureAnywhere.mapping,
+        extractReferences,
+        injectReferences,
         id: (opts.id as string) || '',
         indexPattern: opts.indexPattern as IIndexPattern,
         defaults: {
           description: get(opts, 'description', ''),
           pluginResourceId: get(opts, 'pluginResourceId', ''),
+          savedObjectRefType: get(opts, 'savedObjectRefType', ''),
           savedObjectId: get(opts, 'savedObjectId', ''),
           augmentExpressionFn: get(opts, 'augmentExpressionFn', {}),
           version: 1,

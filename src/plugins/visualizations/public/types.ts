@@ -134,7 +134,9 @@ export interface ISavedFeatureAnywhere {
   id?: string;
   description?: string;
   pluginResourceId: string;
-  savedObjectId: string;
+  savedObjectRefName?: string;
+  savedObjectRefType?: string;
+  savedObjectId?: string;
   augmentExpressionFn: AugmentExpressionFn;
   version?: number;
 }
@@ -155,7 +157,9 @@ export interface SerializedFeatureAnywhere {
   id?: string;
   description?: string;
   pluginResourceId: string;
-  savedObjectId: string;
+  savedObjectRefName?: string;
+  savedObjectRefType?: string;
+  savedObjectId?: string;
   augmentExpressionFn: string;
   version?: number;
 }

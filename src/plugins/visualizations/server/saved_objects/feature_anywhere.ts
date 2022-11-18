@@ -39,9 +39,7 @@ export const featureAnywhereSavedObjectType: SavedObjectsType = {
     properties: {
       description: { type: 'text' },
       pluginResourceId: { type: 'text' },
-      savedObjectRefName: { type: 'keyword', index: false, doc_values: false },
-      // TODO: I think this can be removed
-      savedObjectRefType: { type: 'keyword', index: false, doc_values: false },
+      savedObjectName: { type: 'keyword', index: false, doc_values: false },
       augmentExpressionFn: {
         properties: {
           // for now we may just support some fn type like 'VisLayers',

@@ -490,7 +490,7 @@ export const getFeatureAnywhereSavedObjs = async (
     // Example 1: this gets feature anywhere objects by ID. We probably don't need/want
     // this here, since we will only have saved object ID at this point.
     // all fields are present (e.g, augmentExpressionFn) & returns the actual SavedFeatureAnywhere obj
-    const response = await loader?.get('dd08eb90-6774-11ed-8308-2146abfbe632');
+    const response = await loader?.get('05ea0cd0-679b-11ed-8431-dd5d34f2963e');
     // Example 2: finds all feature-anywhere objs. Passing no args, which defaults to searching
     // over a wildcard string to return all of the saved objects. All fields are present
     // (e.g., augmentExpressionFn), just need to parse response (parse the 'hits' field)

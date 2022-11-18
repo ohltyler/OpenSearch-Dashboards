@@ -55,23 +55,17 @@ export function extractReferences({
   const updatedAttributes = { ...attributes };
   const updatedReferences = [...references];
 
-  console.log('updated attributes: ', updatedAttributes);
-
   // Extract saved object
-  if (updatedAttributes.savedObjectRefType && updatedAttributes.savedObjectId) {
+  if (updatedAttributes.savedObjectType && updatedAttributes.savedObjectId) {
     updatedReferences.push({
       name: 'saved_object_0',
-      type: String(updatedAttributes.savedObjectRefType),
+      type: String(updatedAttributes.savedObjectType),
       id: String(updatedAttributes.savedObjectId),
     });
     delete updatedAttributes.savedObjectId;
-    delete updatedAttributes.savedObjectRefType;
-    updatedAttributes.savedObjectRefName = 'saved_object_0';
+    delete updatedAttributes.savedObjectType;
+    updatedAttributes.savedObjectName = 'saved_object_0';
   }
-
-  console.log('in extractReferences');
-  console.log('updated refs: ', updatedReferences);
-
   return {
     references: updatedReferences,
     attributes: updatedAttributes,
@@ -91,18 +85,16 @@ export function injectReferences(
   savedObject: FeatureAnywhereSavedObject,
   references: SavedObjectReference[]
 ) {
-  if (savedObject.savedObjectRefName) {
+  if (savedObject.savedObjectName) {
     const savedObjectReference = references.find(
-      (reference) => reference.name === savedObject.savedObjectRefName
+      (reference) => reference.name === savedObject.savedObjectName
     );
     if (!savedObjectReference) {
-      throw new Error(`Could not find saved object reference "${savedObject.savedObjectRefName}"`);
+      throw new Error(`Could not find saved object reference "${savedObject.savedObjectName}"`);
     }
 
-    console.log('in injectReferences');
-    console.log('id found in references: ', savedObjectReference.id);
     savedObject.savedObjectId = savedObjectReference.id;
-    savedObject.savedObjectRefType = savedObjectReference.type;
-    delete savedObject.savedObjectRefName;
+    savedObject.savedObjectType = savedObjectReference.type;
+    delete savedObject.savedObjectName;
   }
 }

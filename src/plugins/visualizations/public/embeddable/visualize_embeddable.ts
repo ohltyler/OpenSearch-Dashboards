@@ -405,6 +405,7 @@ export class VisualizeEmbeddable
     const abortController = this.abortController;
 
     // Collect any vis layers from plugin expr fns (e.g., anomalies/alerts)
+    // by fetching all feature anywhere saved objs that match the vis ID
     let exprVisLayers = {} as ExprVisLayers;
     if (this.vis.params.type === 'line') {
       const featureAnywhereSavedObjs = await getFeatureAnywhereSavedObjs(

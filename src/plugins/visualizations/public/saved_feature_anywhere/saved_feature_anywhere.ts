@@ -28,6 +28,7 @@
  * under the License.
  */
 
+import { get } from 'lodash';
 import {
   SavedObjectLoader,
   SavedObjectOpenSearchDashboardsServices,
@@ -54,15 +55,34 @@ export function createSavedFeatureAnywhereLoader(
   const { savedObjectsClient } = services;
 
   class SavedObjectLoaderFeatureAnywhere extends SavedObjectLoader {
-    // this is where we can do post-processing on the source results and add
-    // it to the feature anywhere saved obj. currently just adding ID
-    // and saved object type. we may add filtering to validate
-    // the augment fn type later - see details listed above
+    // this is doing a lightweight version of injectReferences
+    // essentially we want to inject the saved object id/type
+    // by fetching the saved object reference and parsing out the id/type
     mapHitSource = (source: Record<string, any>, id: string) => {
       source.id = id;
-      source.savedObjectType = 'feature-anywhere';
+      source.savedObjectId = get(source, 'savedObjectReference.id', '');
+      source.savedObjectType = get(source, 'savedObjectReference.type', '');
+      delete source.savedObjectReference;
+      delete source.savedObjectName;
       return source;
     };
+
+    /**
+     * Updates hit.attributes to contain an id and fields related to the referenced saved object
+     * (savedObjectId, savedObjectType) and returns the updated attributes object.
+     * @param hit
+     * @returns {hit.attributes} The modified hit.attributes object, with an id and url field.
+     */
+    mapSavedObjectApiHits(hit: {
+      references: any[];
+      attributes: Record<string, unknown>;
+      id: string;
+    }) {
+      // For now we are assuming only one reference per saved object.
+      // If we change to multiple, we will need to dynamically handle that
+      const savedObjectReference = hit.references[0];
+      return this.mapHitSource({ ...hit.attributes, savedObjectReference }, hit.id);
+    }
   }
   const SavedFeatureAnywhere = createSavedFeatureAnywhereClass(services);
   return new SavedObjectLoaderFeatureAnywhere(

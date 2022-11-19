@@ -44,6 +44,7 @@ import {
   VisToExpressionAstParams,
   FeatureAnywhereSavedObject,
   FeatureAnywhereFunctionDefinition,
+  ISavedFeatureAnywhere,
   VisLayers,
 } from '../types';
 import { SavedFeatureAnywhereLoader } from '../saved_feature_anywhere';
@@ -481,57 +482,20 @@ export const buildPipeline = async (vis: Vis, params: BuildPipelineParams) => {
 export const getFeatureAnywhereSavedObjs = async (
   visId: string | undefined,
   loader: SavedFeatureAnywhereLoader | undefined
-): Promise<FeatureAnywhereSavedObject[]> => {
-  // TODO: below try/catch block works for fetching saved objects right now.
-  // need to change saved object data model to use references instead of hard-coded
-  // savedObjectId. When that is done, update the findAll fns here to fetch the
-  // relevant saved objects
+): Promise<ISavedFeatureAnywhere[]> => {
   try {
-    // Example 1: this gets feature anywhere objects by ID. We probably don't need/want
-    // this here, since we will only have saved object ID at this point.
-    // all fields are present (e.g, augmentExpressionFn) & returns the actual SavedFeatureAnywhere obj
-    const response = await loader?.get('05ea0cd0-679b-11ed-8431-dd5d34f2963e');
-    // Example 2: finds all feature-anywhere objs. Passing no args, which defaults to searching
-    // over a wildcard string to return all of the saved objects. All fields are present
-    // (e.g., augmentExpressionFn), just need to parse response (parse the 'hits' field)
-    //const response = await loader?.find();
-    console.log('response from fetching an example saved obj: ', response);
+    const resp = await loader?.findAll();
+    const allSavedObjects = (get(resp, 'hits', []) as any[]) as ISavedFeatureAnywhere[];
+    return allSavedObjects.filter((hit: ISavedFeatureAnywhere) => hit.savedObjectId === visId);
   } catch (e) {
-    console.log('no saved obj found: ', e);
+    console.log('Unable to search for feature anywhere saved objects: ', e);
+    return [] as ISavedFeatureAnywhere[];
   }
-
-  // console.log('saved obj results: ', savedFeatureAnywhere);
-
-  // for now use a dummy saved obj. in the future, use saved obj apis to
-  // fetch and sort through any relevant feature-anywhere saved objs based on visId arg
-  const savedObjectsFound = ([
-    {
-      id: '<some-feature-anywhere-id',
-      pluginResourceId: '7uDr5oMBJSTDLAJPKn3R',
-      savedObjectId: '2d8ad070-66b1-11ed-998e-b142764c0a2d',
-      augmentExpressionFn: {
-        type: 'PointInTimeEventsVisLayer',
-        name: 'overlay_anomalies',
-        args: {
-          detectorId: '7uDr5oMBJSTDLAJPKn3R',
-        },
-      },
-    },
-
-    // {
-    //   expressionFnName: 'overlay_alerts',
-    //   expressionFnArgs: {
-    //     monitorId: 'xyz789',
-    //   },
-    // },
-  ] as any[]) as FeatureAnywhereSavedObject[];
-
-  return savedObjectsFound.filter((savedObject) => savedObject.savedObjectId === visId);
 };
 
 // parses out an array of feature-anywhere saved object into a pipeline string
 export const buildPipelineFromFeatureAnywhereSavedObjs = (
-  objs: FeatureAnywhereSavedObject[]
+  objs: ISavedFeatureAnywhere[]
 ): string => {
   const featureAnywhereExpressionFns = [] as ExpressionAstFunctionBuilder<
     FeatureAnywhereFunctionDefinition
@@ -540,7 +504,7 @@ export const buildPipelineFromFeatureAnywhereSavedObjs = (
   // TODO: update to handle new data models for
   // (1) the saved obj
   // (2) the expression fn I/O
-  objs.forEach((obj: FeatureAnywhereSavedObject) => {
+  objs.forEach((obj: ISavedFeatureAnywhere) => {
     featureAnywhereExpressionFns.push(
       buildExpressionFunction<FeatureAnywhereFunctionDefinition>(
         obj.augmentExpressionFn.name,

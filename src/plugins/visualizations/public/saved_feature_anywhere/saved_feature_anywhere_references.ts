@@ -36,14 +36,16 @@ import {
 import { FeatureAnywhereSavedObject } from '../types';
 
 /**
- * These helper fns are used for constructing and deconstructing references for the feature anywhere
- * saved objs. They references are used when making saved obj API calls, or viewing in the
- * saved objs management page.
+ * Note that references aren't stored in the object's interface (FeatureAnywhereSavedObject).
+ * Rather, just the ID/type is. The references are used when making saved obj API calls, or viewing in the
+ * saved objs management page to show parent/child relationships between saved objects.
+ *
+ * So, we need to instantiate these helper fns to construct & deconstruct
+ * references when creating & reading the indexed/stored saved objects, respectively.
  */
 
 /**
- * Given an obj with the saved obj type & ID fields specified, build a reference,
- * and delete those unneeded fields. Add a refname to know which reference it is referring to.
+ * Used during creation. Converting from FeatureAnywhereSavedObject to the actual indexed saved object
  */
 export function extractReferences({
   attributes,
@@ -73,13 +75,7 @@ export function extractReferences({
 }
 
 /**
- * Given a returned saved obj from the indexed results, use the stored refname (which is
- * set in extractReferences()) and pull out the other reference info, such as ID
- * Note we may not need to populate the type field here, since the ID is all that's needed
- * due to how we are fetching these saved objs strictly via the visualization itself.
- * But, we will leave for now in case further use cases need the type information. For example,
- * to fetch the full saved obj reference, will need both type & ID for constructing API calls
- * to perform any CRUD operations on such saved objects.
+ * Used during reading. Converting from the indexed saved object to a FeatureAnywhereSavedObject
  */
 export function injectReferences(
   savedObject: FeatureAnywhereSavedObject,
@@ -92,7 +88,6 @@ export function injectReferences(
     if (!savedObjectReference) {
       throw new Error(`Could not find saved object reference "${savedObject.savedObjectName}"`);
     }
-
     savedObject.savedObjectId = savedObjectReference.id;
     savedObject.savedObjectType = savedObjectReference.type;
     delete savedObject.savedObjectName;

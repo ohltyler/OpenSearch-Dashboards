@@ -80,7 +80,7 @@ const createSpecFromDatatable = (datatable: OpenSearchDashboardsDatatable): obje
   //let spec = {} as VegaSpec;
 
   // TODO: update this to v5 when available
-  spec.$schema = 'https://vega.github.io/schema/vega-lite/v4.json';
+  spec.$schema = 'https://vega.github.io/schema/vega-lite/v5.json';
   spec.data = {
     values: datatable.rows,
   };
@@ -104,15 +104,20 @@ const createSpecFromDatatable = (datatable: OpenSearchDashboardsDatatable): obje
   // assuming the first column in the datatable represents the x-axis / the time-related field.
   // need to confirm if that's always the case or not
   spec.layer = [] as any[];
+  // TODO: remove hardcode on which columns map to which dataset.
+  // assuming a total of 3 for now (1 for timeline, 1 for metric data, 1 for annotation data)
   const xAxis = datatable.columns[0];
+  const metricAxis = datatable.columns[1];
+  //const annotationAxis = datatable.columns[2];
   datatable.columns.forEach((column, index) => {
-    if (index !== 0) {
+    if (index === 1) {
       spec.layer.push({
         mark: 'line',
         encoding: {
           x: {
             axis: {
-              title: xAxis.name,
+              title: null,
+              domain: false,
               grid: false,
               ticks: false,
               labels: false,
@@ -122,7 +127,7 @@ const createSpecFromDatatable = (datatable: OpenSearchDashboardsDatatable): obje
           },
           y: {
             axis: {
-              title: column.name,
+              title: metricAxis.name,
               grid: false,
             },
             field: column.id,
@@ -233,6 +238,100 @@ const addPointInTimeEventsLayersToSpec = (
   visLayers: VisLayers
 ): object => {
   let newSpec = cloneDeep(spec) as any;
+
+  //console.log('in vega_spec fn');
+  //console.log('vislayers to add: ', visLayers);
+  //console.log('spec before: ', newSpec);
+  //console.log('datatable: ', datatable);
+
+  // 1. Nest the existing layer into a vconcat
+  newSpec.vconcat = [] as any[];
+  newSpec.vconcat.push({
+    layer: newSpec.layer,
+  });
+  delete newSpec.layer;
+
+  // 2. Add a rule mark to this top layer
+
+  // TODO: remove hardcode on which columns map to which dataset.
+  // assuming a total of 3 for now (1 for timeline, 1 for metric data, 1 for annotation data)
+  const xAxis = datatable.columns[0];
+  //const metricAxis = datatable.columns[1];
+  const annotationAxis = datatable.columns[2];
+  newSpec.vconcat[0].layer.push({
+    transform: [
+      {
+        // TODO: use annotationAxis.id instead
+        filter: "datum['anomaly-events-annotation-id'] > 0",
+      },
+    ],
+    mark: 'rule',
+    encoding: {
+      x: {
+        field: xAxis.id,
+        type: 'temporal',
+      },
+      opacity: {
+        value: 0,
+        condition: {
+          empty: false,
+          param: 'hover',
+          value: 1,
+        },
+      },
+    },
+  });
+
+  // 3. Add an entirely new blue dot layer
+  newSpec.vconcat.push({
+    params: [
+      {
+        name: 'hover',
+        select: {
+          type: 'point',
+          on: 'mouseover',
+        },
+      },
+    ],
+    mark: 'circle',
+    encoding: {
+      x: {
+        axis: {
+          domain: true,
+          grid: false,
+          ticks: true,
+          title: xAxis.name,
+        },
+        field: xAxis.id,
+        type: 'temporal',
+      },
+      opacity: {
+        value: 0,
+        condition: {
+          test: "datum['anomaly-events-annotation-id'] > 0",
+          value: 1,
+        },
+      },
+      size: {
+        condition: {
+          empty: false,
+          param: 'hover',
+          value: 125,
+        },
+        value: 75,
+      },
+      tooltip: [
+        {
+          field: annotationAxis.id,
+          type: 'quantitative',
+          title: 'Anomalies',
+        },
+      ],
+    },
+  });
+
+  //console.log('spec after: ', newSpec);
+  //console.log('spec after (as string: ', JSON.stringify(newSpec));
 
   /**
    * It is expected at this point that all of the data is in one layer

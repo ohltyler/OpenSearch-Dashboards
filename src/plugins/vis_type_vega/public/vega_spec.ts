@@ -152,8 +152,7 @@ const addPointInTimeEventsLayersToTable = (
 
   if (visLayers !== undefined && !isEmpty(visLayers)) {
     visLayers.every((visLayer) => {
-      // TODO: how to persist an ID? can we re-use name field?
-      const visLayerId = visLayer.name + '-annotation-id';
+      const visLayerId = visLayer.id + '-annotation-id';
       augmentedTable.columns.push({
         id: visLayerId,
         name: visLayer.name,

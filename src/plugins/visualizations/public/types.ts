@@ -105,24 +105,31 @@ export type VisToExpressionAst<TVisParams = VisParams> = (
  * Vis layering data models
  */
 export interface VisLayer {
+  // will be used as the column ID
+  id: string;
+  // will be used as the name when hovering over the tooltip
   name: string;
 }
 
 export type VisLayers = VisLayer[];
 
+export interface PointInTimeEventMetadata {
+  resourceId: string;
+  resourceName: string;
+  tooltip?: string;
+}
+
 export interface PointInTimeEvent {
   timestamp: number;
-  // this may be set at layer-level rather than event-level
-  metadata: {};
+  metadata: PointInTimeEventMetadata;
 }
 
 export interface PointInTimeEventsVisLayer extends VisLayer {
   events: PointInTimeEvent[];
-  format: string;
-  //format: PointInTimeEventFormat;
 }
 
-// used to determine what vis layer's interface is being implemented
+// used to determine what vis layer's interface is being implemented.
+// currently PointInTimeEventsLayer is the only interface extending VisLayer
 export const isPointInTimeEventsVisLayer = (obj: any) => {
   return 'events' in obj;
 };

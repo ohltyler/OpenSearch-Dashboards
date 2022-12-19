@@ -67,6 +67,7 @@ export {
   VisLayers,
   PointInTimeEventsVisLayer,
   PointInTimeEvent,
+  PointInTimeEventMetadata,
   isPointInTimeEventsVisLayer,
   FeatureAnywhereSavedObject,
   ISavedFeatureAnywhere,

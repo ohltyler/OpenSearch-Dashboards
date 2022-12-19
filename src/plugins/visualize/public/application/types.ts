@@ -57,6 +57,7 @@ import { SavedObjectsStart, SavedObject } from 'src/plugins/saved_objects/public
 import { EmbeddableStart } from 'src/plugins/embeddable/public';
 import { UrlForwardingStart } from 'src/plugins/url_forwarding/public';
 import { DashboardStart } from '../../../dashboard/public';
+import { PluginIntegrationStart } from '../../../plugin_integration/public';
 
 export type PureVisState = SavedVisState;
 
@@ -119,6 +120,7 @@ export interface VisualizeServices extends CoreStart {
   visualizations: VisualizationsStart;
   savedObjectsPublic: SavedObjectsStart;
   savedVisualizations: VisualizationsStart['savedVisualizationsLoader'];
+  savedVisIntegration: PluginIntegrationStart['savedVisIntegrationLoader'];
   setActiveUrl: (newUrl: string) => void;
   createVisEmbeddableFromObject: VisualizationsStart['__LEGACY']['createVisEmbeddableFromObject'];
   restorePreviousUrl: () => void;

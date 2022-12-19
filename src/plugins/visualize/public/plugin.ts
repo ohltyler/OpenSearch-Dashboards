@@ -70,12 +70,14 @@ import {
 } from './services';
 import { visualizeFieldAction } from './actions/visualize_field_action';
 import { createVisualizeUrlGenerator } from './url_generator';
+import { PluginIntegrationStart } from '../../plugin_integration/public';
 
 export interface VisualizePluginStartDependencies {
   data: DataPublicPluginStart;
   navigation: NavigationStart;
   share?: SharePluginStart;
   visualizations: VisualizationsStart;
+  pluginIntegration: PluginIntegrationStart;
   embeddable: EmbeddableStart;
   urlForwarding: UrlForwardingStart;
   savedObjects: SavedObjectsStart;
@@ -196,6 +198,7 @@ export class VisualizePlugin
           localStorage: new Storage(localStorage),
           navigation: pluginsStart.navigation,
           savedVisualizations: pluginsStart.visualizations.savedVisualizationsLoader,
+          savedVisIntegration: pluginsStart.pluginIntegration.savedVisIntegrationLoader,
           share: pluginsStart.share,
           toastNotifications: coreStart.notifications.toasts,
           visualizeCapabilities: coreStart.application.capabilities.visualize,

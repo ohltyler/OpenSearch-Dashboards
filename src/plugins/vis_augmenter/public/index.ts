@@ -18,4 +18,20 @@ export {
   SavedObjectOpenSearchDashboardsServicesWithAugmentVis,
 } from './saved_augment_vis';
 
-export { ISavedAugmentVis, VisLayerExpressionFn, AugmentVisSavedObject } from './types';
+export {
+  ISavedAugmentVis,
+  VisLayerExpressionFn,
+  AugmentVisSavedObject,
+  VisLayerFunctionDefinition,
+  VisLayer,
+  VisLayers,
+  VisLayerTypes,
+  PointInTimeEvent,
+  PointInTimeEventsVisLayer,
+  isPointInTimeEventsVisLayer,
+} from './types';
+
+export * from './expressions';
+export * from './utils';
+export * from './constants';
+export * from './vega';

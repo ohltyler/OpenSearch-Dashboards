@@ -161,6 +161,16 @@ export class VisualizeEmbeddable
     this.attributeService = attributeService;
     this.savedVisualizationsLoader = savedVisualizationsLoader;
 
+    // TODO: this auto refresh subscription we don't want in the view events flyout
+    // basically we can make sure we pass a time filter (a refresh interval) that
+    // has no auto-refresh. Right now it is passed down to the vis embeddables via
+    // parent containers which are typically dashboard panels that inherit
+    // dashboard-level auto-refresh settings.
+    // we can specify the embeddable input, but currently passing a timefilter and/or
+    // refresh interval doesn't seem supported. need to look into it. maybe something
+    // can be set in the embeddable panel itself that changes the default from inheriting
+    // from the base dashboard context and override the timefilter settings there
+
     this.autoRefreshFetchSubscription = timefilter
       .getAutoRefreshFetch$()
       .subscribe(this.updateHandler.bind(this));

@@ -1,0 +1,7 @@
+.view-events-flyout {
+    max-width: 1500px; // Visualizations require the container to have a valid width and height to render
+    min-width: 800px;
+    &__vis {
+      height: 400px; // Visualizations require the container to have a valid width and height to render
+    }
+  }

@@ -5,8 +5,12 @@
 
 import { ExpressionsSetup } from '../../expressions/public';
 import { PluginInitializerContext, CoreSetup, CoreStart, Plugin } from '../../../core/public';
-import { DataPublicPluginSetup, DataPublicPluginStart } from '../../data/public';
 import { visLayers } from './expressions';
+import { registerTriggersAndActions } from './ui_actions_bootstrap';
+import { UiActionsStart } from '../../ui_actions/public';
+import { setUiActions, setEmbeddable, setQueryService } from './services';
+import { EmbeddableStart } from '../../embeddable/public';
+import { DataPublicPluginStart } from '../../data/public';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface VisAugmenterSetup {}
@@ -15,11 +19,12 @@ export interface VisAugmenterSetup {}
 export interface VisAugmenterStart {}
 
 export interface VisAugmenterSetupDeps {
-  data: DataPublicPluginSetup;
   expressions: ExpressionsSetup;
 }
 
 export interface VisAugmenterStartDeps {
+  uiActions: UiActionsStart;
+  embeddable: EmbeddableStart;
   data: DataPublicPluginStart;
 }
 
@@ -30,13 +35,23 @@ export class VisAugmenterPlugin
 
   public setup(
     core: CoreSetup<VisAugmenterStartDeps, VisAugmenterStart>,
-    { data, expressions }: VisAugmenterSetupDeps
+    { expressions }: VisAugmenterSetupDeps
   ): VisAugmenterSetup {
     expressions.registerType(visLayers);
     return {};
   }
 
-  public start(core: CoreStart, { data }: VisAugmenterStartDeps): VisAugmenterStart {
+  public start(
+    core: CoreStart,
+    { uiActions, embeddable, data }: VisAugmenterStartDeps
+  ): VisAugmenterStart {
+    setUiActions(uiActions);
+    setEmbeddable(embeddable);
+    setQueryService(data.query);
+
+    // registers the triggers & actions defined in this plugin
+    // also maps any triggers to possible actions
+    registerTriggersAndActions(core);
     return {};
   }
 

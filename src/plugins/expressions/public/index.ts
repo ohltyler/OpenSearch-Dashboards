@@ -63,6 +63,7 @@ export {
   ExecutionContract,
   ExecutionContainer,
   ExecutionContext,
+  ExecutionContextSearch,
   ExecutionParams,
   ExecutionState,
   Executor,

@@ -220,6 +220,7 @@ export class VisualizationsPlugin
     });
     setSavedAugmentVisLoader(savedAugmentVisLoader);
     setSavedSearchLoader(savedSearchLoader);
+
     return {
       ...types,
       showNewVisModal,

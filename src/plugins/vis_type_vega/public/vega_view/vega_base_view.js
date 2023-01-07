@@ -281,6 +281,10 @@ export class VegaBaseView {
         this._addDestroyHandler(() => tthandler.hideTooltip());
       }
 
+      view.addEventListener('click', function (event, item) {
+        console.log('CLICK', event, item);
+      });
+
       return view.runAsync(); // Allows callers to await rendering
     }
   }

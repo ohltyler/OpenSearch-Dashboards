@@ -92,6 +92,7 @@ import {
 } from './saved_visualizations/_saved_vis';
 import { createSavedSearchesLoader } from '../../discover/public';
 import { DashboardStart } from '../../dashboard/public';
+import { registerTriggersAndActions } from './ui_actions_bootstrap';
 
 /**
  * Interface for this plugin's returned setup/start contracts.
@@ -210,6 +211,11 @@ export class VisualizationsPlugin
       overlays: core.overlays,
     });
     setSavedSearchLoader(savedSearchLoader);
+
+    // registers the triggers & actions defined in this plugin
+    // also maps any triggers to possible actions
+    registerTriggersAndActions(uiActions, core);
+
     return {
       ...types,
       showNewVisModal,

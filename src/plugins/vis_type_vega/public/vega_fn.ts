@@ -98,6 +98,7 @@ export const createVegaFn = (
         visType: 'vega',
         visConfig: {
           spec: args.spec,
+          testConfig: 'test',
         },
       },
     };

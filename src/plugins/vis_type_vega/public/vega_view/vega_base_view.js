@@ -38,8 +38,9 @@ import { i18n } from '@osd/i18n';
 import { TooltipHandler } from './vega_tooltip';
 import { opensearchFilters } from '../../../data/public';
 
-import { getEnableExternalUrls, getData } from '../services';
+import { getEnableExternalUrls, getData, getUiActions } from '../services';
 import { extractIndexPatternsFromSpec } from '../lib/extract_index_pattern';
+import { OPEN_EVENTS_FLYOUT_TRIGGER } from '../../../visualizations/public';
 
 vega.scheme('elastic', euiPaletteColorBlind());
 
@@ -84,6 +85,7 @@ export class VegaBaseView {
     this._destroyHandlers = [];
     this._initialized = false;
     this._enableExternalUrls = getEnableExternalUrls();
+    this._vis = opts.vis;
   }
 
   async init() {
@@ -281,8 +283,11 @@ export class VegaBaseView {
         this._addDestroyHandler(() => tthandler.hideTooltip());
       }
 
+      // trigger the open events flyout UIAction if a click happens on an annotation datapoint
       view.addEventListener('click', function (event, item) {
-        console.log('CLICK', event, item);
+        //console.log('CLICK', event, item);
+        const vis = view._opensearchDashboardsView._vis;
+        getUiActions().getTrigger(OPEN_EVENTS_FLYOUT_TRIGGER).exec({ vis });
       });
 
       return view.runAsync(); // Allows callers to await rendering

@@ -31,6 +31,7 @@
 import { PluginInitializerContext } from 'opensearch-dashboards/public';
 import { ConfigSchema } from '../config';
 import { VegaPlugin as Plugin } from './plugin';
+export { createVegaVisualization } from './vega_visualization';
 
 export function plugin(initializerContext: PluginInitializerContext<ConfigSchema>) {
   return new Plugin(initializerContext);

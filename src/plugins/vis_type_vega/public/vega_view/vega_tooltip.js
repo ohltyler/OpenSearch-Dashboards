@@ -69,7 +69,7 @@ export class TooltipHandler {
   handler(view, event, item, value) {
     this.hideTooltip();
 
-    console.log('item: ', item);
+    //console.log('item: ', item);
 
     // hide tooltip for null, undefined, or empty string values
     if (value == null || value === '') {

@@ -8,9 +8,10 @@ import { PluginInitializerContext, CoreSetup, CoreStart, Plugin } from '../../..
 import { visLayers } from './expressions';
 import { registerTriggersAndActions } from './ui_actions_bootstrap';
 import { UiActionsStart } from '../../ui_actions/public';
-import { setUiActions, setEmbeddable, setQueryService } from './services';
+import { setUiActions, setEmbeddable, setQueryService, setVisualizations } from './services';
 import { EmbeddableStart } from '../../embeddable/public';
 import { DataPublicPluginStart } from '../../data/public';
+import { VisualizationsStart } from '../../visualizations/public';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface VisAugmenterSetup {}
@@ -26,6 +27,7 @@ export interface VisAugmenterStartDeps {
   uiActions: UiActionsStart;
   embeddable: EmbeddableStart;
   data: DataPublicPluginStart;
+  visualizations: VisualizationsStart;
 }
 
 export class VisAugmenterPlugin
@@ -43,11 +45,12 @@ export class VisAugmenterPlugin
 
   public start(
     core: CoreStart,
-    { uiActions, embeddable, data }: VisAugmenterStartDeps
+    { uiActions, embeddable, data, visualizations }: VisAugmenterStartDeps
   ): VisAugmenterStart {
     setUiActions(uiActions);
     setEmbeddable(embeddable);
     setQueryService(data.query);
+    setVisualizations(visualizations);
 
     // registers the triggers & actions defined in this plugin
     // also maps any triggers to possible actions

@@ -362,6 +362,7 @@ export class VisualizeEmbeddable
   }
 
   public destroy() {
+    console.log('destroying...');
     super.destroy();
     this.subscriptions.forEach((s) => s.unsubscribe());
     this.vis.uiState.off('change', this.uiStateChangeHandler);

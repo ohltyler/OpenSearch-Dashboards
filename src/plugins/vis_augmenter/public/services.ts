@@ -7,6 +7,7 @@ import { EmbeddableStart } from '../../embeddable/public';
 import { createGetterSetter } from '../../opensearch_dashboards_utils/public';
 import { UiActionsStart } from '../../ui_actions/public';
 import { DataPublicPluginStart } from '../../../plugins/data/public';
+import { VisualizationsStart } from '../../visualizations/public';
 
 export const [getUiActions, setUiActions] = createGetterSetter<UiActionsStart>('UIActions');
 
@@ -15,3 +16,7 @@ export const [getEmbeddable, setEmbeddable] = createGetterSetter<EmbeddableStart
 export const [getQueryService, setQueryService] = createGetterSetter<
   DataPublicPluginStart['query']
 >('Query');
+
+export const [getVisualizations, setVisualizations] = createGetterSetter<VisualizationsStart>(
+  'visualizations'
+);

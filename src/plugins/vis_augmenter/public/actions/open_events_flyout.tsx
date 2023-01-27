@@ -5,7 +5,7 @@
 import React from 'react';
 import { CoreStart } from 'src/core/public';
 import { toMountPoint } from '../../../opensearch_dashboards_react/public';
-import { ViewEventsFlyout } from './view_events_flyout';
+import { ViewEventsFlyout } from '../components';
 
 interface Props {
   core: CoreStart;

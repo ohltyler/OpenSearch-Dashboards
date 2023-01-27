@@ -1,0 +1,17 @@
+.view-events-flyout {
+    max-width: 1500px;
+    min-width: 800px;
+    &__baseVis {
+      height: 400px; // Visualizations require the container to have a valid width and height to render
+    }
+    &__eventVis {
+      height: 75px;
+    }
+    &__visDescription {
+      width: 200px;
+    }
+  }
+
+.events-embeddable-panel {
+  max-width: 500px
+}

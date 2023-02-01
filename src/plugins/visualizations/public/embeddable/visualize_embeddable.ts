@@ -83,6 +83,10 @@ export interface VisualizeInput extends EmbeddableInput {
   };
   savedVis?: SerializedVis;
   table?: unknown;
+  visLayerResourceIds?: string[];
+  // TODO: may not need below field. Currently using to partition the data
+  // and render view events page correctly
+  visLayerPlugins?: string[];
 }
 
 export interface VisualizeOutput extends EmbeddableOutput {
@@ -127,6 +131,7 @@ export class VisualizeEmbeddable
     VisualizeByReferenceInput
   >;
   private savedVisualizationsLoader?: SavedVisualizationsLoader;
+  public visLayers?: Array<any>;
 
   constructor(
     timefilter: TimefilterContract,
@@ -394,6 +399,62 @@ export class VisualizeEmbeddable
     }
     this.abortController = new AbortController();
     const abortController = this.abortController;
+
+    // TODO: remove later. testing dummy vis layers that may be returned from the set
+    // of expressions functinos ran by the plugins
+    const dummyVisLayers = [
+      {
+        plugin: 'anomaly-detection',
+        events: [
+          {
+            timestamp: 1234,
+            metadata: {
+              resourceId: 'detector-1-id',
+              resourceName: 'detector-1',
+            },
+          },
+          {
+            timestamp: 5678,
+            metadata: {
+              resourceId: 'detector-1-id',
+              resourceName: 'detector-1',
+            },
+          },
+        ],
+      },
+      {
+        plugin: 'anomaly-detection',
+        events: [
+          {
+            timestamp: 1234,
+            metadata: {
+              resourceId: 'detector-2-id',
+              resourceName: 'detector-2',
+            },
+          },
+        ],
+      },
+      {
+        plugin: 'alerting',
+        events: [
+          {
+            timestamp: 1234,
+            metadata: {
+              resourceId: 'monitor-1-id',
+              resourceName: 'monitor-1',
+            },
+          },
+        ],
+      },
+    ] as Array<any>;
+
+    this.visLayers =
+      this.input.visLayerResourceIds !== undefined
+        ? dummyVisLayers.filter((dummyVisLayer) =>
+            this.input.visLayerResourceIds?.includes(dummyVisLayer.events[0].metadata.resourceId)
+          )
+        : dummyVisLayers;
+
     this.expression = await buildPipeline(this.vis, {
       timefilter: this.timefilter,
       timeRange: this.timeRange,

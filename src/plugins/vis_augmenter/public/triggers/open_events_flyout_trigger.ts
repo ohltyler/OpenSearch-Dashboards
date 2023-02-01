@@ -8,7 +8,6 @@ import { Trigger, OPEN_EVENTS_FLYOUT_TRIGGER } from '../../../ui_actions/public'
 
 export interface AugmentVisContext {
   savedObjectId: string;
-  // TODO: add other fields for things like vislayers
 }
 
 export const openEventsFlyoutTrigger: Trigger<'OPEN_EVENTS_FLYOUT_TRIGGER'> = {

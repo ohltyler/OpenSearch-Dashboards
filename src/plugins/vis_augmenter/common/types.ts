@@ -9,10 +9,16 @@ export enum VisLayerTypes {
   PointInTimeEvents = 'PointInTimeEvents',
 }
 
+export interface PluginResourceData {
+  name: string;
+  id: string;
+  url: string;
+}
+
 export interface VisLayer {
   type: keyof typeof VisLayerTypes;
-  name: string;
   originPlugin: string;
+  resourceData: PluginResourceData;
 }
 
 export type VisLayers = VisLayer[];

@@ -407,6 +407,11 @@ export class VisualizeEmbeddable
       {
         originPlugin: 'anomaly-detection',
         type: VisLayerTypes.PointInTimeEvents,
+        resourceData: {
+          name: 'anomaly-detector-1',
+          id: 'anomaly-detector-1-id',
+          url: 'anomaly-detection-dashboards#/detectors/anomaly-detector-1-id/configurations',
+        },
         events: [
           {
             timestamp: 1234,
@@ -427,6 +432,11 @@ export class VisualizeEmbeddable
       {
         originPlugin: 'anomaly-detection',
         type: VisLayerTypes.PointInTimeEvents,
+        resourceData: {
+          name: 'anomaly-detector-2',
+          id: 'anomaly-detector-2-id',
+          url: 'anomaly-detection-dashboards#/detectors/anomaly-detector-2-id/configurations',
+        },
         events: [
           {
             timestamp: 1234,
@@ -440,6 +450,11 @@ export class VisualizeEmbeddable
       {
         originPlugin: 'alerting',
         type: VisLayerTypes.PointInTimeEvents,
+        resourceData: {
+          name: 'monitor-1',
+          id: 'monitor-1-id',
+          url: 'alerting#/monitors/monitor-1-id/details',
+        },
         events: [
           {
             timestamp: 1234,

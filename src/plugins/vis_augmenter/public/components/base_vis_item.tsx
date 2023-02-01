@@ -23,7 +23,7 @@ export function BaseVisItem(props: Props) {
   const PanelComponent = getEmbeddable().getEmbeddablePanel();
 
   return (
-    <EuiFlexGroup direction="row">
+    <EuiFlexGroup direction="row" gutterSize="s">
       <EuiFlexItem className="view-events-flyout__visDescription" grow={false} />
       <EuiFlexItem grow={true} className="view-events-flyout__baseVis">
         <PanelComponent

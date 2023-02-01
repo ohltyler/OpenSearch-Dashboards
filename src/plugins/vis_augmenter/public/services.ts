@@ -8,6 +8,7 @@ import { createGetterSetter } from '../../opensearch_dashboards_utils/public';
 import { UiActionsStart } from '../../ui_actions/public';
 import { DataPublicPluginStart } from '../../../plugins/data/public';
 import { VisualizationsStart } from '../../visualizations/public';
+import { CoreStart } from '../../../core/public';
 
 export const [getUiActions, setUiActions] = createGetterSetter<UiActionsStart>('UIActions');
 
@@ -20,3 +21,5 @@ export const [getQueryService, setQueryService] = createGetterSetter<
 export const [getVisualizations, setVisualizations] = createGetterSetter<VisualizationsStart>(
   'visualizations'
 );
+
+export const [getCore, setCore] = createGetterSetter<CoreStart>('Core');

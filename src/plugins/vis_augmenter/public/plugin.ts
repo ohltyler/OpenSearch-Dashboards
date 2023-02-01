@@ -8,7 +8,13 @@ import { PluginInitializerContext, CoreSetup, CoreStart, Plugin } from '../../..
 import { visLayers } from './expressions';
 import { registerTriggersAndActions } from './ui_actions_bootstrap';
 import { UiActionsStart } from '../../ui_actions/public';
-import { setUiActions, setEmbeddable, setQueryService, setVisualizations } from './services';
+import {
+  setUiActions,
+  setEmbeddable,
+  setQueryService,
+  setVisualizations,
+  setCore,
+} from './services';
 import { EmbeddableStart } from '../../embeddable/public';
 import { DataPublicPluginStart } from '../../data/public';
 import { VisualizationsStart } from '../../visualizations/public';
@@ -51,6 +57,7 @@ export class VisAugmenterPlugin
     setEmbeddable(embeddable);
     setQueryService(data.query);
     setVisualizations(visualizations);
+    setCore(core);
 
     // registers the triggers & actions defined in this plugin
     // also maps any triggers to possible actions

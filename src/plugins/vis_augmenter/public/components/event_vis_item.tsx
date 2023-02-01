@@ -4,8 +4,15 @@
  */
 
 import React from 'react';
-import { EuiFlexGroup, EuiFlexItem, EuiSpacer, EuiText } from '@elastic/eui';
-import { getEmbeddable } from '../services';
+import {
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiSpacer,
+  EuiText,
+  EuiLink,
+  EuiNotificationBadge,
+} from '@elastic/eui';
+import { getEmbeddable, getCore } from '../services';
 import './styles.scss';
 import { EventVisEmbeddableItem } from './';
 
@@ -15,17 +22,20 @@ interface Props {
 
 export function EventVisItem(props: Props) {
   const PanelComponent = getEmbeddable().getEmbeddablePanel();
+  const baseUrl = getCore().http.basePath;
+  const { name, url } = props.item.visLayer.resourceData;
 
   return (
     <>
       <EuiSpacer size="l" />
-      <EuiFlexGroup direction="row">
+      <EuiFlexGroup direction="row" gutterSize="s">
         <EuiFlexItem grow={false} className="view-events-flyout__visDescription">
           <EuiFlexGroup alignItems="center">
             <EuiFlexItem>
-              {/* TODO: change from originPlugin to plugin resource name.
-              Need to update vislayer data model*/}
-              <EuiText size="s">{props.item.visLayer.originPlugin}</EuiText>
+              <EuiLink href={`${baseUrl.prepend(`${url}`)}`}>{name}</EuiLink>
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <EuiNotificationBadge color="subdued">3</EuiNotificationBadge>
             </EuiFlexItem>
           </EuiFlexGroup>
         </EuiFlexItem>

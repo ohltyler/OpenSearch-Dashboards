@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { EuiFlexGroup, EuiFlexItem, EuiSpacer, EuiText } from '@elastic/eui';
 import './styles.scss';
 import { EventVisItem } from './event_vis_item';
-import { VisualizeEmbeddable } from '../../../visualizations/public';
 import { EventVisEmbeddableItem } from './';
 
 interface Props {

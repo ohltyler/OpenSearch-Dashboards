@@ -12,6 +12,7 @@ export enum VisLayerTypes {
 export interface VisLayer {
   type: keyof typeof VisLayerTypes;
   name: string;
+  originPlugin: string;
 }
 
 export type VisLayers = VisLayer[];

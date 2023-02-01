@@ -4,14 +4,18 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { get, isEmpty } from 'lodash';
-import { EuiFlyoutBody, EuiFlyoutHeader, EuiText, EuiFlyout, EuiSpacer } from '@elastic/eui';
+import { get } from 'lodash';
+import { EuiFlyoutBody, EuiFlyoutHeader, EuiText, EuiFlyout } from '@elastic/eui';
 import { getEmbeddable, getQueryService } from '../services';
 import './styles.scss';
-import { VisualizeEmbeddable, VisualizeInput } from '../../../visualizations/public';
+import { VisualizeEmbeddable } from '../../../visualizations/public';
 import { BaseVisItem } from './base_vis_item';
 import { PluginEventsPanel } from './plugin_events_panel';
-import { getVisualizeInputFromVisLayer, populateEventVisEmbeddablesMap } from './utils';
+import {
+  getVisualizeInputFromPointInTimeEventsVisLayer,
+  populateEventVisEmbeddablesMap,
+} from './utils';
+import { isPointInTimeEventsVisLayer, PointInTimeEventsVisLayer, VisLayer } from '../../common';
 
 interface Props {
   onClose: () => void;
@@ -53,6 +57,8 @@ export function ViewEventsFlyout(props: Props) {
         },
       });
 
+      // reload is needed so we can fetch the initial VisLayers, and so they're
+      // assigned to the vislayers field in the embeddable itself
       embeddable.reload();
 
       setVisEmbeddable(embeddable);
@@ -65,7 +71,12 @@ export function ViewEventsFlyout(props: Props) {
   // embeddable to only show datapoints for that particular VisLayer
   async function createEventEmbeddables(visEmbeddable: VisualizeEmbeddable) {
     try {
-      if (visEmbeddable.visLayers !== undefined) {
+      // Currently only support PointInTimeEventVisLayers. Different layer types
+      // may require different logic in here
+      const visLayers = (get(visEmbeddable, 'visLayers', []) as VisLayer[]).filter((visLayer) =>
+        isPointInTimeEventsVisLayer(visLayer)
+      ) as PointInTimeEventsVisLayer[];
+      if (visLayers !== undefined) {
         const contextInput = {
           filters: visEmbeddable.getInput().filters,
           query: visEmbeddable.getInput().query,
@@ -74,12 +85,12 @@ export function ViewEventsFlyout(props: Props) {
 
         let eventEmbeddables = [] as Array<VisualizeEmbeddable>;
         await Promise.all(
-          visEmbeddable.visLayers.map(async (visLayer) => {
+          visLayers.map(async (visLayer) => {
             const eventEmbeddable = (await embeddableVisFactory?.createFromSavedObject(
               props.savedObjectId,
               {
                 ...contextInput,
-                ...getVisualizeInputFromVisLayer(visLayer),
+                ...getVisualizeInputFromPointInTimeEventsVisLayer(visLayer),
               }
             )) as VisualizeEmbeddable;
 
@@ -111,8 +122,8 @@ export function ViewEventsFlyout(props: Props) {
     }
   }, [visEmbeddable?.visLayers]);
 
-  // partition the event vis embeddables by plugin by populating the plugin mapping
-  // a plugin -> list of associated event vis embeddables
+  // partition the event vis embeddables by plugin by populating a map mapping a
+  // plugin -> list of associated event vis embeddables
   let eventVisEmbeddablesMap = new Map<
     string,
     EventVisEmbeddableItem[]

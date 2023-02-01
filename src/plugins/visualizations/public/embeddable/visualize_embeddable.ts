@@ -65,6 +65,7 @@ import { SavedObjectAttributes } from '../../../../core/types';
 import { AttributeService } from '../../../dashboard/public';
 import { SavedVisualizationsLoader } from '../saved_visualizations';
 import { VisSavedObject } from '../types';
+import { PointInTimeEventsVisLayer, VisLayer, VisLayerTypes } from '../../../vis_augmenter/public';
 
 const getKeys = <T extends {}>(o: T): Array<keyof T> => Object.keys(o) as Array<keyof T>;
 
@@ -131,7 +132,7 @@ export class VisualizeEmbeddable
     VisualizeByReferenceInput
   >;
   private savedVisualizationsLoader?: SavedVisualizationsLoader;
-  public visLayers?: Array<any>;
+  public visLayers?: Array<VisLayer>;
 
   constructor(
     timefilter: TimefilterContract,
@@ -404,7 +405,8 @@ export class VisualizeEmbeddable
     // of expressions functinos ran by the plugins
     const dummyVisLayers = [
       {
-        plugin: 'anomaly-detection',
+        originPlugin: 'anomaly-detection',
+        type: VisLayerTypes.PointInTimeEvents,
         events: [
           {
             timestamp: 1234,
@@ -423,7 +425,8 @@ export class VisualizeEmbeddable
         ],
       },
       {
-        plugin: 'anomaly-detection',
+        originPlugin: 'anomaly-detection',
+        type: VisLayerTypes.PointInTimeEvents,
         events: [
           {
             timestamp: 1234,
@@ -435,7 +438,8 @@ export class VisualizeEmbeddable
         ],
       },
       {
-        plugin: 'alerting',
+        originPlugin: 'alerting',
+        type: VisLayerTypes.PointInTimeEvents,
         events: [
           {
             timestamp: 1234,
@@ -446,7 +450,7 @@ export class VisualizeEmbeddable
           },
         ],
       },
-    ] as Array<any>;
+    ] as Array<PointInTimeEventsVisLayer>;
 
     this.visLayers =
       this.input.visLayerResourceIds !== undefined

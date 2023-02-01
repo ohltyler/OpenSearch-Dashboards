@@ -286,6 +286,8 @@ export class VegaBaseView {
 
       // trigger the open events flyout UIAction if a click happens on an annotation datapoint
       view.addEventListener('click', function (event, item) {
+        // TODO: add filtering to determine if the item is a datapoint, and whether or not it is an
+        // "annotation" datapoint vs. regular datapoint
         const { savedObjectId } = get(view, '_opensearchDashboardsView._visInput', {});
         getUiActions().getTrigger(OPEN_EVENTS_FLYOUT_TRIGGER).exec({ savedObjectId });
       });

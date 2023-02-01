@@ -6,6 +6,7 @@
 import { get, isEmpty } from 'lodash';
 import { VisualizeEmbeddable } from '../../../visualizations/public';
 import { EventVisEmbeddablesMap, EventVisEmbeddableItem } from '.';
+import { isPointInTimeEventsVisLayer, PointInTimeEventsVisLayer, VisLayer } from '../../common';
 
 export const populateEventVisEmbeddablesMap = (
   map: EventVisEmbeddablesMap,
@@ -17,35 +18,50 @@ export const populateEventVisEmbeddablesMap = (
     visEmbeddable !== undefined &&
     visEmbeddable.visLayers !== undefined
   ) {
-    const plugins = [
-      ...new Set(visEmbeddable.visLayers.map((visLayer) => visLayer.plugin)),
+    // Currently only support PointInTimeEventVisLayers. Different layer types
+    // may require different logic here
+    const visLayers = (visEmbeddable.visLayers as VisLayer[]).filter((visLayer) =>
+      isPointInTimeEventsVisLayer(visLayer)
+    ) as PointInTimeEventsVisLayer[];
+    const originPlugins = [
+      ...new Set(visLayers.map((visLayer) => visLayer.originPlugin)),
     ] as string[];
-    plugins.forEach((plugin) => {
-      map.set(plugin, [] as EventVisEmbeddableItem[]);
+    originPlugins.forEach((originPlugin) => {
+      map.set(originPlugin, [] as EventVisEmbeddableItem[]);
     });
     eventVisEmbeddables.forEach((eventVisEmbeddable) => {
-      const resourceIds = get(eventVisEmbeddable.getInput(), 'visLayerResourceIds', [] as string[]);
-      const plugins = get(eventVisEmbeddable.getInput(), 'visLayerPlugins', [] as string[]);
-      if (!isEmpty(resourceIds) && !isEmpty(plugins)) {
-        // TODO: clean up how these are getting fetched. currently hacky to fetch first index
-        // @ts-ignore
-        map
-          .get(plugins[0])
-          .push({
-            pluginResourceId: resourceIds[0],
-            embeddable: eventVisEmbeddable,
-          } as EventVisEmbeddableItem);
+      const { originPlugin, pluginResourceId } = getVisLayerInputFromEventVisEmbeddable(
+        eventVisEmbeddable
+      );
+      const curList = map.get(originPlugin);
+      if (curList !== undefined) {
+        curList.push({
+          pluginResourceId,
+          embeddable: eventVisEmbeddable,
+        } as EventVisEmbeddableItem);
       }
     });
   }
 };
 
-// TODO: make typesafe after rebasing
-export const getVisualizeInputFromVisLayer = (
-  visLayer: any
+export const getVisualizeInputFromPointInTimeEventsVisLayer = (
+  visLayer: PointInTimeEventsVisLayer
 ): { visLayerResourceIds: string[]; visLayerPlugins: string[] } => {
   return {
     visLayerResourceIds: [visLayer.events[0].metadata.resourceId as string],
-    visLayerPlugins: [visLayer.plugin as string],
+    visLayerPlugins: [visLayer.originPlugin as string],
+  };
+};
+
+// Currently the event vis embeddables are always going to be created with a single vis layer / single plugin resource.
+// So, we can select the first (and only) item in the input arrays
+const getVisLayerInputFromEventVisEmbeddable = (
+  eventVisEmbeddable: VisualizeEmbeddable
+): { originPlugin: string; pluginResourceId: string } => {
+  const resourceIds = get(eventVisEmbeddable.getInput(), 'visLayerResourceIds', [] as string[]);
+  const plugins = get(eventVisEmbeddable.getInput(), 'visLayerPlugins', [] as string[]);
+  return {
+    originPlugin: plugins[0],
+    pluginResourceId: resourceIds[0],
   };
 };

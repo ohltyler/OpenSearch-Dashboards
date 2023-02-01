@@ -11,10 +11,7 @@ import './styles.scss';
 import { VisualizeEmbeddable } from '../../../visualizations/public';
 import { BaseVisItem } from './base_vis_item';
 import { PluginEventsPanel } from './plugin_events_panel';
-import {
-  getVisualizeInputFromPointInTimeEventsVisLayer,
-  populateEventVisEmbeddablesMap,
-} from './utils';
+import { getVisualizeInputFromPointInTimeEventsVisLayer } from './utils';
 import { isPointInTimeEventsVisLayer, PointInTimeEventsVisLayer, VisLayer } from '../../common';
 
 interface Props {
@@ -23,7 +20,7 @@ interface Props {
 }
 
 export type EventVisEmbeddableItem = {
-  pluginResourceId: string;
+  visLayer: VisLayer;
   embeddable: VisualizeEmbeddable;
 };
 
@@ -31,9 +28,10 @@ export type EventVisEmbeddablesMap = Map<string, EventVisEmbeddableItem[]>;
 
 export function ViewEventsFlyout(props: Props) {
   const [visEmbeddable, setVisEmbeddable] = useState<VisualizeEmbeddable | undefined>(undefined);
-  const [eventVisEmbeddables, setEventVisEmbeddables] = useState<VisualizeEmbeddable[] | undefined>(
-    undefined
-  );
+  const [eventVisEmbeddablesMap, setEventVisEmbeddablesMap] = useState<
+    EventVisEmbeddablesMap | undefined
+  >(undefined);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const embeddableVisFactory = getEmbeddable().getEmbeddableFactory('visualization');
 
@@ -71,6 +69,7 @@ export function ViewEventsFlyout(props: Props) {
   // embeddable to only show datapoints for that particular VisLayer
   async function createEventEmbeddables(visEmbeddable: VisualizeEmbeddable) {
     try {
+      let map = new Map<string, EventVisEmbeddableItem[]>() as EventVisEmbeddablesMap;
       // Currently only support PointInTimeEventVisLayers. Different layer types
       // may require different logic in here
       const visLayers = (get(visEmbeddable, 'visLayers', []) as VisLayer[]).filter((visLayer) =>
@@ -83,9 +82,9 @@ export function ViewEventsFlyout(props: Props) {
           timeRange: visEmbeddable.getInput().timeRange,
         };
 
-        let eventEmbeddables = [] as Array<VisualizeEmbeddable>;
         await Promise.all(
           visLayers.map(async (visLayer) => {
+            const originPlugin = visLayer.originPlugin;
             const eventEmbeddable = (await embeddableVisFactory?.createFromSavedObject(
               props.savedObjectId,
               {
@@ -102,10 +101,17 @@ export function ViewEventsFlyout(props: Props) {
               },
             });
 
-            eventEmbeddables.push(eventEmbeddable);
+            const curList = (map.get(originPlugin) === undefined
+              ? []
+              : map.get(originPlugin)) as EventVisEmbeddableItem[];
+            curList.push({
+              visLayer,
+              embeddable: eventEmbeddable,
+            } as EventVisEmbeddableItem);
+            map.set(originPlugin, curList);
           })
         );
-        setEventVisEmbeddables(eventEmbeddables);
+        setEventVisEmbeddablesMap(map);
       }
     } catch (err) {
       console.log(err);
@@ -122,26 +128,18 @@ export function ViewEventsFlyout(props: Props) {
     }
   }, [visEmbeddable?.visLayers]);
 
-  // partition the event vis embeddables by plugin by populating a map mapping a
-  // plugin -> list of associated event vis embeddables
-  let eventVisEmbeddablesMap = new Map<
-    string,
-    EventVisEmbeddableItem[]
-  >() as EventVisEmbeddablesMap;
-  if (
-    eventVisEmbeddables !== undefined &&
-    visEmbeddable !== undefined &&
-    visEmbeddable.visLayers !== undefined
-  ) {
-    populateEventVisEmbeddablesMap(eventVisEmbeddablesMap, visEmbeddable, eventVisEmbeddables);
-  }
+  useEffect(() => {
+    if (visEmbeddable !== undefined && eventVisEmbeddablesMap !== undefined) {
+      setIsLoaded(true);
+    }
+  }, [eventVisEmbeddablesMap]);
 
   return (
     <EuiFlyout className="view-events-flyout" onClose={props.onClose}>
       <EuiFlyoutHeader hasBorder></EuiFlyoutHeader>
       <EuiFlyoutBody>
         <EuiText>view events flyout</EuiText>
-        {visEmbeddable !== undefined && eventVisEmbeddables !== undefined ? (
+        {isLoaded ? (
           <>
             <BaseVisItem embeddable={visEmbeddable} />
             {Array.from(eventVisEmbeddablesMap.keys()).map((key, index) => {

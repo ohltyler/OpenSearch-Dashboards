@@ -23,7 +23,9 @@ export function EventVisItem(props: Props) {
         <EuiFlexItem grow={false} className="view-events-flyout__visDescription">
           <EuiFlexGroup alignItems="center">
             <EuiFlexItem>
-              <EuiText size="s">{props.item.pluginResourceId}</EuiText>
+              {/* TODO: change from originPlugin to plugin resource name.
+              Need to update vislayer data model*/}
+              <EuiText size="s">{props.item.visLayer.originPlugin}</EuiText>
             </EuiFlexItem>
           </EuiFlexGroup>
         </EuiFlexItem>

@@ -3,4 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { ViewEventsFlyout } from './view_events_flyout';
+export {
+  ViewEventsFlyout,
+  EventVisEmbeddablesMap,
+  EventVisEmbeddableItem,
+} from './view_events_flyout';

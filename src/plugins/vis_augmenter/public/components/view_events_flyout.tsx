@@ -11,11 +11,19 @@ import './styles.scss';
 import { VisualizeEmbeddable, VisualizeInput } from '../../../visualizations/public';
 import { BaseVisItem } from './base_vis_item';
 import { PluginEventsPanel } from './plugin_events_panel';
+import { getVisualizeInputFromVisLayer, populateEventVisEmbeddablesMap } from './utils';
 
 interface Props {
   onClose: () => void;
   savedObjectId: string;
 }
+
+export type EventVisEmbeddableItem = {
+  pluginResourceId: string;
+  embeddable: VisualizeEmbeddable;
+};
+
+export type EventVisEmbeddablesMap = Map<string, EventVisEmbeddableItem[]>;
 
 export function ViewEventsFlyout(props: Props) {
   const [visEmbeddable, setVisEmbeddable] = useState<VisualizeEmbeddable | undefined>(undefined);
@@ -53,6 +61,8 @@ export function ViewEventsFlyout(props: Props) {
     }
   }
 
+  // For each VisLayer in the base vis embeddable, generate a new filtered vis
+  // embeddable to only show datapoints for that particular VisLayer
   async function createEventEmbeddables(visEmbeddable: VisualizeEmbeddable) {
     try {
       if (visEmbeddable.visLayers !== undefined) {
@@ -63,18 +73,14 @@ export function ViewEventsFlyout(props: Props) {
         };
 
         let eventEmbeddables = [] as Array<VisualizeEmbeddable>;
-
         await Promise.all(
           visEmbeddable.visLayers.map(async (visLayer) => {
-            const input = {
-              ...contextInput,
-              visLayerResourceIds: [visLayer.events[0].metadata.resourceId as string],
-              visLayerPlugins: [visLayer.plugin as string],
-            } as VisualizeInput;
-
             const eventEmbeddable = (await embeddableVisFactory?.createFromSavedObject(
               props.savedObjectId,
-              input
+              {
+                ...contextInput,
+                ...getVisualizeInputFromVisLayer(visLayer),
+              }
             )) as VisualizeEmbeddable;
 
             eventEmbeddable.updateInput({
@@ -105,37 +111,18 @@ export function ViewEventsFlyout(props: Props) {
     }
   }, [visEmbeddable?.visLayers]);
 
-  // partition the event embeddables by plugin
-  // TODO: refactor this
+  // partition the event vis embeddables by plugin by populating the plugin mapping
+  // a plugin -> list of associated event vis embeddables
   let eventVisEmbeddablesMap = new Map<
     string,
-    { pluginResourceId: string; embeddable: VisualizeEmbeddable }[]
-  >();
+    EventVisEmbeddableItem[]
+  >() as EventVisEmbeddablesMap;
   if (
     eventVisEmbeddables !== undefined &&
     visEmbeddable !== undefined &&
     visEmbeddable.visLayers !== undefined
   ) {
-    const plugins = [
-      ...new Set(visEmbeddable.visLayers.map((visLayer) => visLayer.plugin)),
-    ] as string[];
-    plugins.forEach((plugin) => {
-      eventVisEmbeddablesMap.set(
-        plugin,
-        [] as { pluginResourceId: string; embeddable: VisualizeEmbeddable }[]
-      );
-    });
-    eventVisEmbeddables.forEach((eventVisEmbeddable) => {
-      const resourceIds = get(eventVisEmbeddable.getInput(), 'visLayerResourceIds', [] as string[]);
-      const plugins = get(eventVisEmbeddable.getInput(), 'visLayerPlugins', [] as string[]);
-      if (!isEmpty(resourceIds) && !isEmpty(plugins)) {
-        // TODO: clean up how these are getting fetched. currently hacky to fetch first index
-        // @ts-ignore
-        eventVisEmbeddablesMap
-          .get(plugins[0])
-          .push({ pluginResourceId: resourceIds[0], embeddable: eventVisEmbeddable });
-      }
-    });
+    populateEventVisEmbeddablesMap(eventVisEmbeddablesMap, visEmbeddable, eventVisEmbeddables);
   }
 
   return (
@@ -151,8 +138,7 @@ export function ViewEventsFlyout(props: Props) {
                 <PluginEventsPanel
                   key={index}
                   pluginTitle={key}
-                  // @ts-ignore
-                  embeddables={eventVisEmbeddablesMap.get(key)}
+                  items={eventVisEmbeddablesMap.get(key) as EventVisEmbeddableItem[]}
                 />
               );
             })}

@@ -8,10 +8,11 @@ import { EuiFlexGroup, EuiFlexItem, EuiSpacer, EuiText } from '@elastic/eui';
 import './styles.scss';
 import { EventVisItem } from './event_vis_item';
 import { VisualizeEmbeddable } from '../../../visualizations/public';
+import { EventVisEmbeddableItem } from './';
 
 interface Props {
   pluginTitle: string;
-  embeddables: Array<{ pluginResourceId: string; embeddable: VisualizeEmbeddable }>;
+  items: Array<EventVisEmbeddableItem>;
 }
 
 export function PluginEventsPanel(props: Props) {
@@ -25,12 +26,8 @@ export function PluginEventsPanel(props: Props) {
           </EuiText>
         </EuiFlexItem>
       </EuiFlexGroup>
-      {props.embeddables.map((embeddable, index) => (
-        <EventVisItem
-          key={index}
-          pluginResourceId={embeddable.pluginResourceId}
-          embeddable={embeddable.embeddable}
-        />
+      {props.items.map((item, index) => (
+        <EventVisItem key={index} item={item} />
       ))}
     </>
   );

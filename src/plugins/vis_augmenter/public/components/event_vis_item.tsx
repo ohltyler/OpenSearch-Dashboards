@@ -6,17 +6,11 @@
 import React, { useState, useEffect } from 'react';
 import { EuiFlexGroup, EuiFlexItem, EuiSpacer, EuiText } from '@elastic/eui';
 import { getEmbeddable } from '../services';
-import {
-  EmbeddableInput,
-  EmbeddableOutput,
-  ErrorEmbeddable,
-  IEmbeddable,
-} from '../../../embeddable/public';
 import './styles.scss';
+import { EventVisEmbeddableItem } from './';
 
 interface Props {
-  embeddable: IEmbeddable<EmbeddableInput, EmbeddableOutput> | ErrorEmbeddable;
-  pluginResourceId: string;
+  item: EventVisEmbeddableItem;
 }
 
 export function EventVisItem(props: Props) {
@@ -29,14 +23,14 @@ export function EventVisItem(props: Props) {
         <EuiFlexItem grow={false} className="view-events-flyout__visDescription">
           <EuiFlexGroup alignItems="center">
             <EuiFlexItem>
-              <EuiText size="s">{props.pluginResourceId}</EuiText>
+              <EuiText size="s">{props.item.pluginResourceId}</EuiText>
             </EuiFlexItem>
           </EuiFlexGroup>
         </EuiFlexItem>
 
         <EuiFlexItem grow={true} className="view-events-flyout__eventVis">
           <PanelComponent
-            embeddable={props.embeddable}
+            embeddable={props.item.embeddable}
             hideHeader={true}
             hasBorder={false}
             hasShadow={false}

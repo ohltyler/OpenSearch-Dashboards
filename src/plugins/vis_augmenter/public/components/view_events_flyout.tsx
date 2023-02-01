@@ -132,7 +132,7 @@ export function ViewEventsFlyout(props: Props) {
     if (visEmbeddable !== undefined && eventVisEmbeddablesMap !== undefined) {
       setIsLoaded(true);
     }
-  }, [eventVisEmbeddablesMap]);
+  }, [visEmbeddable, eventVisEmbeddablesMap]);
 
   return (
     <EuiFlyout className="view-events-flyout" onClose={props.onClose}>

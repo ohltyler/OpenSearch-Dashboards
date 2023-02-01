@@ -35,7 +35,12 @@ export function EventVisItem(props: Props) {
         </EuiFlexItem>
 
         <EuiFlexItem grow={true} className="view-events-flyout__eventVis">
-          <PanelComponent embeddable={props.embeddable} hideHeader={true} />
+          <PanelComponent
+            embeddable={props.embeddable}
+            hideHeader={true}
+            hasBorder={false}
+            hasShadow={false}
+          />
         </EuiFlexItem>
       </EuiFlexGroup>
     </>

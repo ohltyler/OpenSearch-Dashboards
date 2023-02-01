@@ -26,7 +26,12 @@ export function BaseVisItem(props: Props) {
     <EuiFlexGroup direction="row">
       <EuiFlexItem className="view-events-flyout__visDescription" grow={false} />
       <EuiFlexItem grow={true} className="view-events-flyout__baseVis">
-        <PanelComponent embeddable={props.embeddable} hideHeader={true} />
+        <PanelComponent
+          embeddable={props.embeddable}
+          hideHeader={true}
+          hasBorder={false}
+          hasShadow={false}
+        />
       </EuiFlexItem>
     </EuiFlexGroup>
   );

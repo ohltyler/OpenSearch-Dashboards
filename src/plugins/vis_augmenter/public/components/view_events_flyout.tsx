@@ -8,10 +8,9 @@ import { get } from 'lodash';
 import { EuiFlyoutBody, EuiFlyoutHeader, EuiText, EuiFlyout } from '@elastic/eui';
 import { getEmbeddable, getQueryService } from '../services';
 import './styles.scss';
-import { VisualizeEmbeddable } from '../../../visualizations/public';
+import { VisualizeEmbeddable, VisualizeInput } from '../../../visualizations/public';
 import { BaseVisItem } from './base_vis_item';
 import { PluginEventsPanel } from './plugin_events_panel';
-import { getVisualizeInputFromPointInTimeEventsVisLayer } from './utils';
 import { isPointInTimeEventsVisLayer, PointInTimeEventsVisLayer, VisLayer } from '../../common';
 
 interface Props {
@@ -28,6 +27,8 @@ export type EventVisEmbeddablesMap = Map<string, EventVisEmbeddableItem[]>;
 
 export function ViewEventsFlyout(props: Props) {
   const [visEmbeddable, setVisEmbeddable] = useState<VisualizeEmbeddable | undefined>(undefined);
+  // This map persists a plugin resource type -> a list of vis embeddables
+  // for each VisLayer of that type
   const [eventVisEmbeddablesMap, setEventVisEmbeddablesMap] = useState<
     EventVisEmbeddablesMap | undefined
   >(undefined);
@@ -66,7 +67,8 @@ export function ViewEventsFlyout(props: Props) {
   }
 
   // For each VisLayer in the base vis embeddable, generate a new filtered vis
-  // embeddable to only show datapoints for that particular VisLayer
+  // embeddable to only show datapoints for that particular VisLayer. Partition them by
+  // plugin resource type
   async function createEventEmbeddables(visEmbeddable: VisualizeEmbeddable) {
     try {
       let map = new Map<string, EventVisEmbeddableItem[]>() as EventVisEmbeddablesMap;
@@ -84,13 +86,13 @@ export function ViewEventsFlyout(props: Props) {
 
         await Promise.all(
           visLayers.map(async (visLayer) => {
-            const originPlugin = visLayer.originPlugin;
+            const pluginResourceType = visLayer.pluginResource.type;
             const eventEmbeddable = (await embeddableVisFactory?.createFromSavedObject(
               props.savedObjectId,
               {
                 ...contextInput,
-                ...getVisualizeInputFromPointInTimeEventsVisLayer(visLayer),
-              }
+                visLayerResourceIds: [visLayer.pluginResource.id as string],
+              } as VisualizeInput
             )) as VisualizeEmbeddable;
 
             eventEmbeddable.updateInput({
@@ -101,14 +103,14 @@ export function ViewEventsFlyout(props: Props) {
               },
             });
 
-            const curList = (map.get(originPlugin) === undefined
+            const curList = (map.get(pluginResourceType) === undefined
               ? []
-              : map.get(originPlugin)) as EventVisEmbeddableItem[];
+              : map.get(pluginResourceType)) as EventVisEmbeddableItem[];
             curList.push({
               visLayer,
               embeddable: eventEmbeddable,
             } as EventVisEmbeddableItem);
-            map.set(originPlugin, curList);
+            map.set(pluginResourceType, curList);
           })
         );
         setEventVisEmbeddablesMap(map);

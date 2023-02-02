@@ -85,9 +85,6 @@ export interface VisualizeInput extends EmbeddableInput {
   savedVis?: SerializedVis;
   table?: unknown;
   visLayerResourceIds?: string[];
-  // TODO: may not need below field. Currently using to partition the data
-  // and render view events page correctly
-  visLayerPlugins?: string[];
 }
 
 export interface VisualizeOutput extends EmbeddableOutput {
@@ -405,62 +402,61 @@ export class VisualizeEmbeddable
     // of expressions functinos ran by the plugins
     const dummyVisLayers = [
       {
-        originPlugin: 'anomaly-detection',
+        originPlugin: 'Anomaly Detection',
         type: VisLayerTypes.PointInTimeEvents,
-        resourceData: {
-          name: 'anomaly-detector-1',
-          id: 'anomaly-detector-1-id',
-          url: 'anomaly-detection-dashboards#/detectors/anomaly-detector-1-id/configurations',
+        pluginResource: {
+          type: 'Anomaly Detectors',
+          id: 'detector-1-id',
+          name: 'detector-1',
+          urlPath: 'anomaly-detection-dashboards#/detectors/anomaly-detector-1-id/configurations',
         },
         events: [
           {
             timestamp: 1234,
             metadata: {
-              resourceId: 'detector-1-id',
-              resourceName: 'detector-1',
+              pluginResourceId: 'detector-1-id',
             },
           },
           {
             timestamp: 5678,
             metadata: {
-              resourceId: 'detector-1-id',
-              resourceName: 'detector-1',
+              pluginResourceId: 'detector-1-id',
             },
           },
         ],
       },
       {
-        originPlugin: 'anomaly-detection',
+        originPlugin: 'Anomaly Detection',
         type: VisLayerTypes.PointInTimeEvents,
-        resourceData: {
-          name: 'anomaly-detector-2',
-          id: 'anomaly-detector-2-id',
-          url: 'anomaly-detection-dashboards#/detectors/anomaly-detector-2-id/configurations',
+        pluginResource: {
+          type: 'Anomaly Detectors',
+          id: 'detector-2-id',
+          name: 'detector-2',
+          urlPath: 'anomaly-detection-dashboards#/detectors/anomaly-detector-2-id/configurations',
         },
         events: [
           {
             timestamp: 1234,
             metadata: {
-              resourceId: 'detector-2-id',
-              resourceName: 'detector-2',
+              pluginResourceId: 'detector-2-id',
             },
           },
         ],
       },
       {
-        originPlugin: 'alerting',
+        originPlugin: 'Alerting',
         type: VisLayerTypes.PointInTimeEvents,
-        resourceData: {
-          name: 'monitor-1',
+        pluginResource: {
+          type: 'Alerting Monitors',
           id: 'monitor-1-id',
-          url: 'alerting#/monitors/monitor-1-id/details',
+          name: 'monitor-1',
+          urlPath: 'alerting#/monitors/monitor-1-id/details',
         },
         events: [
           {
             timestamp: 1234,
             metadata: {
-              resourceId: 'monitor-1-id',
-              resourceName: 'monitor-1',
+              pluginResourceId: 'monitor-1-id',
             },
           },
         ],
@@ -470,7 +466,7 @@ export class VisualizeEmbeddable
     this.visLayers =
       this.input.visLayerResourceIds !== undefined
         ? dummyVisLayers.filter((dummyVisLayer) =>
-            this.input.visLayerResourceIds?.includes(dummyVisLayer.events[0].metadata.resourceId)
+            this.input.visLayerResourceIds?.includes(dummyVisLayer.pluginResource.id)
           )
         : dummyVisLayers;
 

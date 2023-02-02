@@ -6,17 +6,11 @@
 import React from 'react';
 import { EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 import { getEmbeddable } from '../services';
-import {
-  EmbeddableInput,
-  EmbeddableOutput,
-  ErrorEmbeddable,
-  IEmbeddable,
-} from '../../../embeddable/public';
-
+import { VisualizeEmbeddable } from '../../../visualizations/public';
 import './styles.scss';
 
 interface Props {
-  embeddable: IEmbeddable<EmbeddableInput, EmbeddableOutput> | ErrorEmbeddable;
+  embeddable: VisualizeEmbeddable;
 }
 
 export function BaseVisItem(props: Props) {

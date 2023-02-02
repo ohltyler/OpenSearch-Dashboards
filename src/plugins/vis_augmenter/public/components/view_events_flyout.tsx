@@ -5,13 +5,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { get } from 'lodash';
-import { EuiFlyoutBody, EuiFlyoutHeader, EuiText, EuiFlyout } from '@elastic/eui';
+import { EuiFlyoutBody, EuiFlyoutHeader, EuiText, EuiFlyout, EuiTitle } from '@elastic/eui';
 import { getEmbeddable, getQueryService } from '../services';
 import './styles.scss';
 import { VisualizeEmbeddable, VisualizeInput } from '../../../visualizations/public';
 import { BaseVisItem } from './base_vis_item';
 import { PluginEventsPanel } from './plugin_events_panel';
 import { isPointInTimeEventsVisLayer, PointInTimeEventsVisLayer, VisLayer } from '../../common';
+import { DateRangeItem } from './date_range_item';
+import { LoadingFlyout } from './loading_flyout';
 
 interface Props {
   onClose: () => void;
@@ -32,7 +34,7 @@ export function ViewEventsFlyout(props: Props) {
   const [eventVisEmbeddablesMap, setEventVisEmbeddablesMap] = useState<
     EventVisEmbeddablesMap | undefined
   >(undefined);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const embeddableVisFactory = getEmbeddable().getEmbeddableFactory('visualization');
 
@@ -132,30 +134,34 @@ export function ViewEventsFlyout(props: Props) {
 
   useEffect(() => {
     if (visEmbeddable !== undefined && eventVisEmbeddablesMap !== undefined) {
-      setIsLoaded(true);
+      setIsLoading(false);
     }
   }, [visEmbeddable, eventVisEmbeddablesMap]);
 
   return (
-    <EuiFlyout className="view-events-flyout" onClose={props.onClose}>
-      <EuiFlyoutHeader hasBorder></EuiFlyoutHeader>
-      <EuiFlyoutBody>
-        <EuiText>view events flyout</EuiText>
-        {isLoaded ? (
-          <>
-            <BaseVisItem embeddable={visEmbeddable} />
-            {Array.from(eventVisEmbeddablesMap.keys()).map((key, index) => {
-              return (
-                <PluginEventsPanel
-                  key={index}
-                  pluginTitle={key}
-                  items={eventVisEmbeddablesMap.get(key) as EventVisEmbeddableItem[]}
-                />
-              );
-            })}
-          </>
-        ) : null}
-      </EuiFlyoutBody>
+    <EuiFlyout size="l" className="view-events-flyout" onClose={props.onClose}>
+      <EuiFlyoutHeader hasBorder>
+        <EuiTitle size="l">
+          <h1>{isLoading ? <>&nbsp;</> : `${visEmbeddable.getTitle()}`}</h1>
+        </EuiTitle>
+      </EuiFlyoutHeader>
+      {isLoading ? (
+        <LoadingFlyout />
+      ) : (
+        <EuiFlyoutBody>
+          <DateRangeItem embeddable={{ visEmbeddable }} />
+          <BaseVisItem embeddable={visEmbeddable} />
+          {Array.from(eventVisEmbeddablesMap.keys()).map((key, index) => {
+            return (
+              <PluginEventsPanel
+                key={index}
+                pluginTitle={key}
+                items={eventVisEmbeddablesMap.get(key) as EventVisEmbeddableItem[]}
+              />
+            );
+          })}
+        </EuiFlyoutBody>
+      )}
     </EuiFlyout>
   );
 }

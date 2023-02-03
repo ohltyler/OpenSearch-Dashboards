@@ -5,10 +5,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { get } from 'lodash';
-import { EuiFlyoutBody, EuiFlyoutHeader, EuiText, EuiFlyout, EuiTitle } from '@elastic/eui';
+import moment from 'moment';
+import { EuiFlyoutBody, EuiFlyoutHeader, EuiFlyout, EuiTitle, EuiSpacer } from '@elastic/eui';
 import { getEmbeddable, getQueryService } from '../services';
 import './styles.scss';
 import { VisualizeEmbeddable, VisualizeInput } from '../../../visualizations/public';
+import { TimeRange } from '../../../data/common';
 import { BaseVisItem } from './base_vis_item';
 import { PluginEventsPanel } from './plugin_events_panel';
 import { isPointInTimeEventsVisLayer, PointInTimeEventsVisLayer, VisLayer } from '../../common';
@@ -27,6 +29,8 @@ export type EventVisEmbeddableItem = {
 
 export type EventVisEmbeddablesMap = Map<string, EventVisEmbeddableItem[]>;
 
+export const DATE_RANGE_FORMAT = 'MM/DD/YYYY HH:mm';
+
 export function ViewEventsFlyout(props: Props) {
   const [visEmbeddable, setVisEmbeddable] = useState<VisualizeEmbeddable | undefined>(undefined);
   // This map persists a plugin resource type -> a list of vis embeddables
@@ -34,9 +38,22 @@ export function ViewEventsFlyout(props: Props) {
   const [eventVisEmbeddablesMap, setEventVisEmbeddablesMap] = useState<
     EventVisEmbeddablesMap | undefined
   >(undefined);
+  const [timeRange, setTimeRange] = useState<TimeRange | undefined>(undefined);
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<string>(
+    moment(Date.now()).format(DATE_RANGE_FORMAT)
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const embeddableVisFactory = getEmbeddable().getEmbeddableFactory('visualization');
+
+  // TODO: get refresh working to update the time ranges of all the embeddables. Manually updating input may work
+  function refresh(time: string) {
+    // console.log('trying to update time...');
+    // const timeRange = getQueryService().timefilter.timefilter.getTime();
+    // console.log('time range now: ', timeRange);
+    // visEmbeddable?.updateInput()
+    //setLastUpdatedTime(time);
+  }
 
   async function fetchVisEmbeddable() {
     try {
@@ -46,6 +63,8 @@ export function ViewEventsFlyout(props: Props) {
         timeRange: getQueryService().timefilter.timefilter.getTime(),
         visLayerResourceIds: ['detector-1-id', 'detector-2-id', 'monitor-1-id'],
       };
+      setTimeRange(contextInput.timeRange);
+
       const embeddable = (await embeddableVisFactory?.createFromSavedObject(
         props.savedObjectId,
         contextInput
@@ -123,6 +142,9 @@ export function ViewEventsFlyout(props: Props) {
   }
 
   useEffect(() => {
+    // if (isLoading) {
+    //   fetchVisEmbeddable();
+    // }
     fetchVisEmbeddable();
   }, [props.savedObjectId]);
 
@@ -133,10 +155,14 @@ export function ViewEventsFlyout(props: Props) {
   }, [visEmbeddable?.visLayers]);
 
   useEffect(() => {
-    if (visEmbeddable !== undefined && eventVisEmbeddablesMap !== undefined) {
+    if (
+      visEmbeddable !== undefined &&
+      eventVisEmbeddablesMap !== undefined &&
+      timeRange !== undefined
+    ) {
       setIsLoading(false);
     }
-  }, [visEmbeddable, eventVisEmbeddablesMap]);
+  }, [visEmbeddable, eventVisEmbeddablesMap, timeRange]);
 
   return (
     <EuiFlyout size="l" className="view-events-flyout" onClose={props.onClose}>
@@ -149,7 +175,11 @@ export function ViewEventsFlyout(props: Props) {
         <LoadingFlyout />
       ) : (
         <EuiFlyoutBody>
-          <DateRangeItem embeddable={{ visEmbeddable }} />
+          <DateRangeItem
+            timeRange={timeRange}
+            lastUpdatedTime={lastUpdatedTime}
+            refreshFn={refresh}
+          />
           <BaseVisItem embeddable={visEmbeddable} />
           {Array.from(eventVisEmbeddablesMap.keys()).map((key, index) => {
             return (

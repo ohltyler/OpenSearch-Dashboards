@@ -3,15 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import moment from 'moment';
 import {
   EuiFlexGroup,
   EuiFlexItem,
-  EuiSuperDatePicker,
   EuiText,
   EuiIcon,
-  EuiFieldText,
   prettyDuration,
   EuiButton,
 } from '@elastic/eui';
@@ -21,11 +19,14 @@ import { DATE_RANGE_FORMAT } from './view_events_flyout';
 
 interface Props {
   timeRange: TimeRange;
-  lastUpdatedTime: string;
-  refreshFn: (time: string) => void;
+  reload: () => void;
 }
 
 export function DateRangeItem(props: Props) {
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<string>(
+    moment(Date.now()).format(DATE_RANGE_FORMAT)
+  );
+
   const durationText = prettyDuration(
     props.timeRange.from,
     props.timeRange.to,
@@ -48,9 +49,11 @@ export function DateRangeItem(props: Props) {
       </EuiFlexItem>
       <EuiFlexItem grow={false}>
         <EuiButton
+          iconType={'refresh'}
           isDisabled={false}
           onClick={() => {
-            props.refreshFn(moment(Date.now()).format(DATE_RANGE_FORMAT));
+            props.reload();
+            setLastUpdatedTime(moment(Date.now()).format(DATE_RANGE_FORMAT));
           }}
         >
           Refresh
@@ -59,7 +62,7 @@ export function DateRangeItem(props: Props) {
       <EuiFlexItem grow={false}>
         <EuiText size="s" color="subdued" style={{ whiteSpace: 'pre-line' }}>
           {`This view is not updated to load the latest events automatically.
-         Last updated: ${props.lastUpdatedTime}`}
+         Last updated: ${lastUpdatedTime}`}
         </EuiText>
       </EuiFlexItem>
     </EuiFlexGroup>

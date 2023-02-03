@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { get } from 'lodash';
-import moment from 'moment';
 import { EuiFlyoutBody, EuiFlyoutHeader, EuiFlyout, EuiTitle, EuiSpacer } from '@elastic/eui';
 import { getEmbeddable, getQueryService } from '../services';
 import './styles.scss';
@@ -39,20 +38,17 @@ export function ViewEventsFlyout(props: Props) {
     EventVisEmbeddablesMap | undefined
   >(undefined);
   const [timeRange, setTimeRange] = useState<TimeRange | undefined>(undefined);
-  const [lastUpdatedTime, setLastUpdatedTime] = useState<string>(
-    moment(Date.now()).format(DATE_RANGE_FORMAT)
-  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const embeddableVisFactory = getEmbeddable().getEmbeddableFactory('visualization');
 
-  // TODO: get refresh working to update the time ranges of all the embeddables. Manually updating input may work
-  function refresh(time: string) {
-    // console.log('trying to update time...');
-    // const timeRange = getQueryService().timefilter.timefilter.getTime();
-    // console.log('time range now: ', timeRange);
-    // visEmbeddable?.updateInput()
-    //setLastUpdatedTime(time);
+  function reload() {
+    visEmbeddable?.reload();
+    eventVisEmbeddablesMap?.forEach((embeddableItems) => {
+      embeddableItems.forEach((embeddableItem) => {
+        embeddableItem.embeddable.reload();
+      });
+    });
   }
 
   async function fetchVisEmbeddable() {
@@ -142,9 +138,6 @@ export function ViewEventsFlyout(props: Props) {
   }
 
   useEffect(() => {
-    // if (isLoading) {
-    //   fetchVisEmbeddable();
-    // }
     fetchVisEmbeddable();
   }, [props.savedObjectId]);
 
@@ -175,11 +168,7 @@ export function ViewEventsFlyout(props: Props) {
         <LoadingFlyout />
       ) : (
         <EuiFlyoutBody>
-          <DateRangeItem
-            timeRange={timeRange}
-            lastUpdatedTime={lastUpdatedTime}
-            refreshFn={refresh}
-          />
+          <DateRangeItem timeRange={timeRange} reload={reload} />
           <BaseVisItem embeddable={visEmbeddable} />
           {Array.from(eventVisEmbeddablesMap.keys()).map((key, index) => {
             return (

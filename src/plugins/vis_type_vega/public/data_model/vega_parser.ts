@@ -693,7 +693,8 @@ The URL is an identifier only. OpenSearch Dashboards and your browser will never
    */
   _setDefaultColors() {
     // Default category coloring to the OpenSearch color scheme
-    this._setDefaultValue({ scheme: 'elastic' }, 'config', 'range', 'category');
+    // TODO: change back to elastic after the scheme bug has been fixed
+    this._setDefaultValue({ scheme: 'category10' }, 'config', 'range', 'category');
 
     if (this.isVegaLite) {
       // Vega-Lite: set default color, works for fill and strike --  config: { mark:  { color: '#54B399' }}

@@ -40,6 +40,7 @@ import { opensearchFilters } from '../../../data/public';
 
 import { getEnableExternalUrls, getData } from '../services';
 import { extractIndexPatternsFromSpec } from '../lib/extract_index_pattern';
+import { interactionHandlers } from '../../../vis_augmenter/public';
 
 vega.scheme('elastic', euiPaletteColorBlind());
 
@@ -292,6 +293,17 @@ export class VegaBaseView {
 
         // Vega bug workaround - need to destroy tooltip by hand
         this._addDestroyHandler(() => tthandler.hideTooltip());
+      }
+
+      if (this._parser.interactionHandlers) {
+        this._parser.interactionHandlers.forEach((interaction) => {
+          if (interactionHandlers[interaction.expressionFunction]) {
+            view.addEventListener(
+              interaction.event,
+              interactionHandlers[interaction.expressionFunction]
+            );
+          }
+        });
       }
 
       return view.runAsync(); // Allows callers to await rendering

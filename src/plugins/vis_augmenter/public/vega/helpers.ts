@@ -21,6 +21,8 @@ import {
   HOVER_PARAM,
 } from '../';
 
+const showEventsFlyoutAction = 'show-events-flyout';
+
 export const enableEventsInConfig = (config: { kibana: {} }) => {
   return {
     ...config,
@@ -296,7 +298,10 @@ export const addPointInTimeEventsLayersToSpec = (
       filled: true,
       opacity: 1,
     },
-    transform: [{ filter: generateVisLayerFilterString(visLayerColumnIds) }],
+    transform: [
+      { filter: generateVisLayerFilterString(visLayerColumnIds) },
+      { calculate: `'${showEventsFlyoutAction}'`, as: 'action' },
+    ],
     params: [{ name: HOVER_PARAM, select: { type: 'point', on: 'mouseover' } }],
     encoding: {
       x: {
@@ -321,4 +326,25 @@ export const addPointInTimeEventsLayersToSpec = (
   });
 
   return newSpec;
+};
+
+export const interactionHandlers = {
+  ['visAugmenter.handlePointInTimeClick']: (event: any, item: any) => {
+    if (isPointInTimeView(item)) {
+      alert('clicked annotation');
+    }
+  },
+};
+
+export const addPointInTimeInteractionHandlers = (spec: any) => {
+  spec.interactionHandlers = [
+    {
+      event: 'click',
+      expressionFunction: 'visAugmenter.handlePointInTimeClick',
+    },
+  ];
+};
+
+export const isPointInTimeView = (item: any) => {
+  return item.datum.action === showEventsFlyoutAction;
 };

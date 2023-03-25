@@ -93,6 +93,7 @@ export class VegaParser {
   filters: Bool;
   timeCache: TimeCache;
   showEvents: boolean;
+  interactionHandlers?: any;
 
   constructor(
     spec: VegaSpec | string,
@@ -164,6 +165,7 @@ The URL is an identifier only. OpenSearch Dashboards and your browser will never
     this.useMap = this._config.type === 'map';
     this.renderer = this._config.renderer === 'svg' ? 'svg' : 'canvas';
     this.tooltips = this._parseTooltips();
+    this._initInteractionHandlers();
 
     this._setDefaultColors();
     this._parseControlPlacement();
@@ -405,6 +407,13 @@ The URL is an identifier only. OpenSearch Dashboards and your browser will never
       }
     }
     return result || {};
+  }
+
+  _initInteractionHandlers() {
+    if (this.spec && this.spec.interactionHandlers) {
+      this.interactionHandlers = this.spec.interactionHandlers;
+      delete this.spec.interactionHandlers;
+    }
   }
 
   _parseTooltips() {

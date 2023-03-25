@@ -71,6 +71,8 @@ import {
   isEligibleForVisLayers,
   getAugmentVisSavedObjs,
   buildPipelineFromAugmentVisSavedObjs,
+  VisLayerTypes,
+  PointInTimeEventsVisLayer,
 } from '../../../vis_augmenter/public';
 import { VisSavedObject } from '../types';
 
@@ -404,7 +406,39 @@ export class VisualizeEmbeddable
     this.abortController = new AbortController();
     const abortController = this.abortController;
 
-    const visLayers = await this.fetchVisLayers(expressionParams, abortController);
+    // const visLayers = await this.fetchVisLayers(expressionParams, abortController);
+    const visLayers = [
+      {
+        originPlugin: 'test-plugin',
+        type: VisLayerTypes.PointInTimeEvents,
+        pluginResource: {
+          type: 'test-resource-type',
+          id: 'test-plugin-resource-id',
+          name: 'test-plugin-resource-name',
+          urlPath: 'test-plugin-resource-path',
+        },
+        events: [
+          {
+            timestamp: 1670918400000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+          {
+            timestamp: 1672128000000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+          {
+            timestamp: 1673251200000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+        ],
+      },
+    ] as PointInTimeEventsVisLayer[];
 
     this.expression = await buildPipeline(this.vis, {
       timefilter: this.timefilter,

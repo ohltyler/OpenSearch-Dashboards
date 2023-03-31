@@ -412,29 +412,119 @@ export class VisualizeEmbeddable
     // const visLayers = await this.fetchVisLayers(expressionParams, abortController);
     const visLayers = [
       {
-        originPlugin: 'test-plugin',
+        originPlugin: 'anomalyDetectionDashboards',
         type: VisLayerTypes.PointInTimeEvents,
         pluginResource: {
-          type: 'test-resource-type',
+          type: 'Anomaly Detectors',
           id: 'test-plugin-resource-id',
-          name: 'test-plugin-resource-name',
+          name: 'Detector A',
           urlPath: 'test-plugin-resource-path',
         },
         events: [
           {
-            timestamp: 1670918400000,
+            timestamp: 1679781303000,
             metadata: {
               pluginResourceId: 'test-plugin-resource-id',
             },
           },
           {
-            timestamp: 1672128000000,
+            timestamp: 1680126903000,
             metadata: {
               pluginResourceId: 'test-plugin-resource-id',
             },
           },
           {
-            timestamp: 1673251200000,
+            timestamp: 1680299703000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+        ],
+      },
+      {
+        originPlugin: 'anomalyDetectionDashboards',
+        type: VisLayerTypes.PointInTimeEvents,
+        pluginResource: {
+          type: 'Anomaly Detectors',
+          id: 'test-plugin-resource-id',
+          name: 'Detector B',
+          urlPath: 'test-plugin-resource-path',
+        },
+        events: [
+          {
+            timestamp: 1679781303000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+        ],
+      },
+      {
+        originPlugin: 'alertingDashboards',
+        type: VisLayerTypes.PointInTimeEvents,
+        pluginResource: {
+          type: 'Alerting Monitors',
+          id: 'test-plugin-resource-id',
+          name: 'Monitor A',
+          urlPath: 'test-plugin-resource-path',
+        },
+        events: [
+          {
+            timestamp: 1679781303000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+        ],
+      },
+      {
+        originPlugin: 'alertingDashboards',
+        type: VisLayerTypes.PointInTimeEvents,
+        pluginResource: {
+          type: 'Alerting Monitors',
+          id: 'test-plugin-resource-id',
+          name: 'Monitor B',
+          urlPath: 'test-plugin-resource-path',
+        },
+        events: [
+          {
+            timestamp: 1679781303000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+        ],
+      },
+      {
+        originPlugin: 'alertingDashboards',
+        type: VisLayerTypes.PointInTimeEvents,
+        pluginResource: {
+          type: 'Alerting Monitors',
+          id: 'test-plugin-resource-id',
+          name: 'Monitor C',
+          urlPath: 'test-plugin-resource-path',
+        },
+        events: [
+          {
+            timestamp: 1679781303000,
+            metadata: {
+              pluginResourceId: 'test-plugin-resource-id',
+            },
+          },
+        ],
+      },
+      {
+        originPlugin: 'alertingDashboards',
+        type: VisLayerTypes.PointInTimeEvents,
+        pluginResource: {
+          type: 'Alerting Monitors',
+          id: 'test-plugin-resource-id',
+          name: 'Monitor D',
+          urlPath: 'test-plugin-resource-path',
+        },
+        events: [
+          {
+            timestamp: 1679781303000,
             metadata: {
               pluginResourceId: 'test-plugin-resource-id',
             },

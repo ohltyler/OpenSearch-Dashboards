@@ -21,6 +21,7 @@ import { DataPublicPluginStart } from '../../data/public';
 import { VisualizationsStart } from '../../visualizations/public';
 import { VIEW_EVENTS_FLYOUT_STATE, setFlyoutState } from './view_events_flyout';
 import { bootstrapUiActions } from './ui_actions_bootstrap';
+import { createStartServicesGetter } from '../../opensearch_dashboards_utils/public';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface VisAugmenterSetup {}
@@ -51,6 +52,10 @@ export class VisAugmenterPlugin
   ): VisAugmenterSetup {
     expressions.registerType(visLayers);
     setUISettings(core.uiSettings);
+
+    //const [coreStart, pluginsStart, selfStart] = core.getStartServices();
+    // const start = createStartServicesGetter(core.getStartServices);
+    // console.log('pluginsStart: ', start().plugins);
 
     return {};
   }

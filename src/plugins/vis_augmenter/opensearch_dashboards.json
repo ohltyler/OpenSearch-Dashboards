@@ -8,9 +8,13 @@
     "savedObjects",
     "opensearchDashboardsUtils",
     "expressions",
-    "visualizations",
     "uiActions",
-    "embeddable"
+    "embeddable",
+    "visualizations"
   ],
-  "requiredBundles": ["opensearchDashboardsReact", "savedObjectsManagement", "visualizations"]
+  "requiredBundles": [
+    "opensearchDashboardsReact",
+    "opensearchDashboardsUtils",
+    "savedObjectsManagement"
+  ]
 }

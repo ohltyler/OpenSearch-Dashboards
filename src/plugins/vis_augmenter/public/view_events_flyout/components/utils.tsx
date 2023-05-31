@@ -11,6 +11,16 @@ import {
   VisualizeInput,
   buildPipeline,
 } from '../../../../visualizations/public';
+
+import * as testImport from '../../../../visualizations/public';
+
+console.log('at top of file');
+console.log('test import: ', testImport);
+// console.log('buildpipeline fn: ', buildPipeline);
+// console.log('visualizeembeddable class: ', VisualizeEmbeddable);
+// // console.log('error embeddable: ', isErrorEmbeddable);
+// console.log('error embeddable class: ', ErrorEmbeddable);
+
 import { getEmbeddable, getQueryService, getTimeFilter, getVisualizations } from '../../services';
 import {
   isPointInTimeEventsVisLayer,
@@ -81,6 +91,8 @@ export async function fetchVisEmbeddable(
     // able to access these for some reason
     console.log('buildpipeline fn: ', buildPipeline);
     console.log('visualizeembeddable class: ', VisualizeEmbeddable);
+    // console.log('error embeddable: ', isErrorEmbeddable);
+    console.log('error embeddable class: ', ErrorEmbeddable);
     //console.log('vissavedObject: ', VisSavedObject);
 
     const expression = buildPipeline(vis, {

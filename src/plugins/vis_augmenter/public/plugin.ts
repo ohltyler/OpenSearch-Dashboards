@@ -6,7 +6,7 @@
 import { ExpressionsSetup } from '../../expressions/public';
 import { PluginInitializerContext, CoreSetup, CoreStart, Plugin } from '../../../core/public';
 import { visLayers } from './expressions';
-import { setSavedAugmentVisLoader, setUISettings } from './services';
+import { setSavedAugmentVisLoader, setTimeFilter, setUISettings } from './services';
 import { createSavedAugmentVisLoader, SavedAugmentVisLoader } from './saved_augment_vis';
 import { UiActionsStart } from '../../ui_actions/public';
 import {
@@ -62,6 +62,7 @@ export class VisAugmenterPlugin
     setUiActions(uiActions);
     setEmbeddable(embeddable);
     setQueryService(data.query);
+    setTimeFilter(data.query.timefilter.timefilter);
     setVisualizations(visualizations);
     setCore(core);
     setFlyoutState(VIEW_EVENTS_FLYOUT_STATE.CLOSED);

@@ -5,8 +5,13 @@
 
 import { get } from 'lodash';
 import { ErrorEmbeddable } from '../../../../embeddable/public';
-import { VisualizeEmbeddable, VisualizeInput } from '../../../../visualizations/public';
-import { getEmbeddable, getQueryService } from '../../services';
+import {
+  VisSavedObject,
+  VisualizeEmbeddable,
+  VisualizeInput,
+  buildPipeline,
+} from '../../../../visualizations/public';
+import { getEmbeddable, getQueryService, getTimeFilter, getVisualizations } from '../../services';
 import {
   isPointInTimeEventsVisLayer,
   PointInTimeEventsVisLayer,
@@ -59,6 +64,35 @@ export async function fetchVisEmbeddable(
 ): Promise<void> {
   const embeddableVisFactory = getEmbeddable().getEmbeddableFactory('visualization');
   try {
+    const visSavedObject: VisSavedObject = await getVisualizations().savedVisualizationsLoader.get(
+      savedObjectId
+    );
+    const visState = getVisualizations().convertToSerializedVis(visSavedObject);
+    const vis = await getVisualizations().createVis(visState.type, visState);
+    await vis.setState(visState);
+
+    const timefilter = getTimeFilter();
+    const timeRange = timefilter.getTime();
+    const abortSignal = undefined;
+    const visLayers = [] as VisLayer[];
+    const visAugmenterConfig = {};
+
+    // TODO: these fns are showing as undefined, so seems to be some issue with dependent plugins not being
+    // able to access these for some reason
+    console.log('buildpipeline fn: ', buildPipeline);
+    console.log('visualizeembeddable class: ', VisualizeEmbeddable);
+    //console.log('vissavedObject: ', VisSavedObject);
+
+    const expression = buildPipeline(vis, {
+      timefilter,
+      abortSignal,
+      visLayers,
+      visAugmenterConfig,
+    });
+    // console.log('expression: ', expression)
+
+    console.log('vis: ', visState);
+
     const contextInput = {
       filters: getQueryService().filterManager.getFilters(),
       query: getQueryService().queryString.getQuery(),

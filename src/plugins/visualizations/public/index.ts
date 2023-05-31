@@ -52,6 +52,7 @@ export {
   getSchemas as getVisSchemas,
   buildVislibDimensions,
   VislibDimensions,
+  buildPipeline,
 } from './legacy/build_pipeline';
 
 /** @public types */

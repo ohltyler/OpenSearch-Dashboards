@@ -12,5 +12,5 @@
     "uiActions",
     "embeddable"
   ],
-  "requiredBundles": ["opensearchDashboardsReact", "savedObjectsManagement"]
+  "requiredBundles": ["opensearchDashboardsReact", "savedObjectsManagement", "visualizations"]
 }

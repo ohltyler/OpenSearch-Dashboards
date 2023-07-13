@@ -27,6 +27,7 @@ jobs:
       # prevents extra Cypress installation progress messages
       CI: 1
       # avoid warnings like "tput: No value for $TERM and no -T specified"
+      # adding test line change
       TERM: xterm
     name: Run cypress tests
     steps:

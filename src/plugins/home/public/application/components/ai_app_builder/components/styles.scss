@@ -1,0 +1,22 @@
+.eui-accordion-custom {
+  padding-top: 25px;
+  padding-left: 20px;
+//   transform: translateX(500)
+  will-change: opacity, visibility, height;
+  translate: none !important;
+  transition: none !important;
+    // will-change: opacity, visibility, height;
+    // visibility: hidden;
+    // height: 0;
+    // opacity: 0;
+    // overflow: hidden;
+    // // sass-lint:disable-block indentation
+    // transition:
+    //   height $euiAnimSpeedNormal $euiAnimSlightResistance,
+    //   opacity $euiAnimSpeedNormal $euiAnimSlightResistance;
+  
+    // &:focus {
+    //   outline: none; // Hide focus ring because of `tabindex=-1` on Safari
+    // }
+}
+  

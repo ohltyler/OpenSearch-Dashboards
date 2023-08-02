@@ -149,6 +149,21 @@ export class HomePublicPlugin
       order: 500,
     });
 
+    featureCatalogue.register({
+      id: 'test_react_flow',
+      title: i18n.translate('home.testReactFlow.featureCatalogueTitle', {
+        defaultMessage: 'Create an AI Application',
+      }),
+      description: i18n.translate('home.testReactFlow.featureCatalogueDescription', {
+        defaultMessage: 'Use a flow-based interface to create an AI-powered application.',
+      }),
+      icon: 'indexOpen',
+      showOnHomePage: true,
+      path: `${HOME_APP_BASE_PATH}#/ai_app_builder`,
+      category: 'data' as FeatureCatalogueCategory.DATA,
+      order: 100,
+    });
+
     return {
       featureCatalogue,
       environment: { ...this.environmentService.setup() },

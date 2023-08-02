@@ -34,6 +34,7 @@ import PropTypes from 'prop-types';
 import { Home } from './home';
 import { FeatureDirectory } from './feature_directory';
 import { TutorialDirectory } from './tutorial_directory';
+import { AiAppBuilder } from './ai_app_builder';
 import { Tutorial } from './tutorial/tutorial';
 import { HashRouter as Router, Switch, Route } from 'react-router-dom';
 import { getTutorial } from '../load_tutorials';
@@ -83,10 +84,15 @@ export function HomeApp({ directories, solutions }) {
     );
   };
 
+  const renderAiApp = (props) => {
+    return <AiAppBuilder />;
+  };
+
   return (
     <I18nProvider>
       <Router>
         <Switch>
+          <Route path="/ai_app_builder" render={renderAiApp} />
           <Route path="/tutorial/:id" render={renderTutorial} />
           <Route path="/tutorial_directory/:tab?" render={renderTutorialDirectory} />
           <Route exact path="/feature_directory">

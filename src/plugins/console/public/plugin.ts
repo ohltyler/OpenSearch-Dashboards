@@ -39,21 +39,21 @@ export class ConsoleUIPlugin implements Plugin<void, void, AppSetupUIPluginDepen
     { notifications, getStartServices, http }: CoreSetup,
     { devTools, home, usageCollection }: AppSetupUIPluginDependencies
   ) {
-    if (home) {
-      home.featureCatalogue.register({
-        id: 'console',
-        title: i18n.translate('console.devToolsTitle', {
-          defaultMessage: 'Interact with the OpenSearch API',
-        }),
-        description: i18n.translate('console.devToolsDescription', {
-          defaultMessage: 'Skip cURL and use a JSON interface to work with your data in Console.',
-        }),
-        icon: 'consoleApp',
-        path: '/app/dev_tools#/console',
-        showOnHomePage: false,
-        category: FeatureCatalogueCategory.ADMIN,
-      });
-    }
+    // if (home) {
+    //   home.featureCatalogue.register({
+    //     id: 'console',
+    //     title: i18n.translate('console.devToolsTitle', {
+    //       defaultMessage: 'Interact with the OpenSearch API',
+    //     }),
+    //     description: i18n.translate('console.devToolsDescription', {
+    //       defaultMessage: 'Skip cURL and use a JSON interface to work with your data in Console.',
+    //     }),
+    //     icon: 'consoleApp',
+    //     path: '/app/dev_tools#/console',
+    //     showOnHomePage: false,
+    //     category: FeatureCatalogueCategory.ADMIN,
+    //   });
+    // }
 
     devTools.register({
       id: 'console',

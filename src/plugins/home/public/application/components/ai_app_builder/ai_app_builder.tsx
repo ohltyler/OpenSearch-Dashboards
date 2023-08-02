@@ -27,24 +27,18 @@ export function AiAppBuilder() {
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
-  console.log('testing');
-  console.log('nodes: ', nodes);
-  return <div>hello world</div>;
-  // return (
-  //   <ReactFlow
-  //     nodes={nodes}
-  //     edges={edges}
-  //     onNodesChange={onNodesChange}
-  //     onEdgesChange={onEdgesChange}
-  //     onConnect={onConnect}
-  //   >
-  //     <MiniMap />
-  //     <Controls />
-  //     <Background />
-  //   </ReactFlow>
-  // );
+  return (
+    <div style={{ height: 500, width: 500 }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+      >
+        <Controls />
+        <Background />
+      </ReactFlow>
+    </div>
+  );
 }
-
-//export default Flow;
-
-// export default AiAppBuilder;

@@ -223,6 +223,18 @@ export function getWebpackConfig(bundle: Bundle, bundleRefs: BundleRefs, worker:
             loader: 'raw-loader',
           },
         },
+        {
+          test: /\.js$/,
+          include: /node_modules[\\/]@?reactflow/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              babelrc: false,
+              envName: worker.dist ? 'production' : 'development',
+              presets: [BABEL_PRESET_PATH],
+            },
+          },
+        },
       ],
     },
 

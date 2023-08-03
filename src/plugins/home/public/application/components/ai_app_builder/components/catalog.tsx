@@ -4,77 +4,23 @@
  */
 
 import {
-  EuiDragDropContext,
-  EuiDraggable,
-  EuiDroppable,
-  EuiPanel,
-  euiDragDropReorder,
-  htmlIdGenerator,
   EuiFlexGroup,
   EuiFlexItem,
   EuiAccordion,
   EuiText,
   EuiSpacer,
-  EuiIcon,
-  EuiButtonIcon,
   EuiTitle,
+  EuiPanel,
 } from '@elastic/eui';
-import React, { useState } from 'react';
-import './styles.scss';
+import React from 'react';
+import './dnd-styles.scss';
+import { EMBEDDINGS_COLOR, MODEL_COLOR, PROMPT_COLOR } from '../constants';
 
-const makeId = htmlIdGenerator();
-
-const makeList = (number, start = 1) =>
-  Array.from({ length: number }, (v, k) => k + start).map((el) => {
-    const content = el === 1 ? 'Semantic Search' : 'Retrieval Augmented Generation';
-    return {
-      content,
-      id: makeId(),
-    };
-  });
 export function Catalog() {
-  const [isItemRemovable, setIsItemRemovable] = useState(false);
-  const [list1, setList1] = useState(makeList(2));
-  const [list2, setList2] = useState([]);
-  const lists = { DROPPABLE_AREA_COPY_1: list1, DROPPABLE_AREA_COPY_2: list2 };
-  const actions = {
-    DROPPABLE_AREA_COPY_1: setList1,
-    DROPPABLE_AREA_COPY_2: setList2,
-  };
-  const remove = (droppableId, index) => {
-    const list = Array.from(lists[droppableId]);
-    list.splice(index, 1);
-
-    actions[droppableId](list);
-  };
-  const onDragUpdate = ({ source, destination }) => {
-    const shouldRemove = !destination && source.droppableId === 'DROPPABLE_AREA_COPY_2';
-    setIsItemRemovable(shouldRemove);
-  };
-  const onDragEnd = ({ source, destination }) => {
-    if (source && destination) {
-      if (source.droppableId === destination.droppableId) {
-        const items = euiDragDropReorder(
-          lists[destination.droppableId],
-          source.index,
-          destination.index
-        );
-
-        actions[destination.droppableId](items);
-      } else {
-        const sourceId = source.droppableId;
-        const destinationId = destination.droppableId;
-        const result = euiDragDropCopy(lists[sourceId], lists[destinationId], source, destination, {
-          property: 'id',
-          modifier: makeId,
-        });
-
-        actions[sourceId](result[sourceId]);
-        actions[destinationId](result[destinationId]);
-      }
-    } else if (!destination && source.droppableId === 'DROPPABLE_AREA_COPY_2') {
-      remove(source.droppableId, source.index);
-    }
+  const onDragStart = (event, nodeType, nodeLabel) => {
+    event.dataTransfer.setData('application/reactflow/type', nodeType);
+    event.dataTransfer.setData('application/reactflow/label', nodeLabel);
+    event.dataTransfer.effectAllowed = 'move';
   };
 
   return (
@@ -87,72 +33,197 @@ export function Catalog() {
         </EuiFlexItem>
         <EuiFlexItem style={{ borderStyle: 'groove', borderColor: 'gray', borderWidth: '1px' }}>
           <EuiAccordion
-            id="useCasesAccordion"
+            id="modelsAccordion"
             paddingSize="l"
-            buttonContent="Use Cases"
-            className="eui-accordion-custom"
-            // style={{
-            //   paddingTop: 200,
-            // }}
+            buttonContent="LLMs"
+            style={{
+              paddingTop: '25px',
+              paddingLeft: '20px',
+            }}
           >
-            <EuiDragDropContext
-              onDragEnd={onDragEnd}
-              onDragUpdate={onDragUpdate}
-              className="eui-accordion-custom"
-            >
-              <EuiFlexGroup>
-                <EuiFlexItem style={{ width: '50%' }}>
-                  <EuiDroppable
-                    droppableId="DROPPABLE_AREA_COPY_1"
-                    cloneDraggables={true}
-                    spacing="l"
-                    grow
-                  >
-                    {list1.map(({ content, id }, idx) => (
-                      <EuiDraggable key={id} index={idx} draggableId={id} spacing="l">
-                        <EuiPanel>{content}</EuiPanel>
-                      </EuiDraggable>
-                    ))}
-                  </EuiDroppable>
-                </EuiFlexItem>
-              </EuiFlexGroup>
-            </EuiDragDropContext>
+            <div onDragStart={(event) => onDragStart(event, 'model', 'GPT-4')} draggable>
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: MODEL_COLOR }}
+              >
+                <EuiText>GPT-4 (drag me!)</EuiText>
+              </EuiPanel>
+            </div>
+            <EuiSpacer size="m" />
+            <div onDragStart={(event) => onDragStart(event, 'model', 'Llama')} draggable>
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: MODEL_COLOR }}
+              >
+                <EuiText>Llama</EuiText>
+              </EuiPanel>
+            </div>
+            <EuiSpacer size="m" />
+            <div onDragStart={(event) => onDragStart(event, 'model', 'BERT')} draggable>
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: MODEL_COLOR }}
+              >
+                <EuiText>BERT</EuiText>
+              </EuiPanel>
+            </div>
           </EuiAccordion>
           <EuiSpacer size="m" />
           <EuiAccordion
-            id="modelsAccordion"
+            id="embeddingsAccordion"
             paddingSize="l"
-            buttonContent="Models"
+            buttonContent="Embedding Models"
             style={{ paddingLeft: 20 }}
           >
-            <EuiText>test</EuiText>
+            <div
+              onDragStart={(event) => onDragStart(event, 'embeddings', 'OpenAI Embedding Model')}
+              draggable
+            >
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: EMBEDDINGS_COLOR }}
+              >
+                <EuiText>OpenAI Embedding Model</EuiText>
+              </EuiPanel>
+            </div>
+            <EuiSpacer size="m" />
+            <div
+              onDragStart={(event) => onDragStart(event, 'embeddings', 'BERT Embedding Model')}
+              draggable
+            >
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: EMBEDDINGS_COLOR }}
+              >
+                <EuiText>BERT Embedding Model</EuiText>
+              </EuiPanel>
+            </div>
+            <EuiSpacer size="m" />
+            <div
+              onDragStart={(event) => onDragStart(event, 'embeddings', 'Word2Vec Embedding Model')}
+              draggable
+            >
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: EMBEDDINGS_COLOR }}
+              >
+                <EuiText>Word2Vec Embedding Model</EuiText>
+              </EuiPanel>
+            </div>
           </EuiAccordion>
           <EuiSpacer size="m" />
           <EuiAccordion
             id="promptsAccordion"
             paddingSize="l"
-            buttonContent="Prompts"
+            buttonContent="Prompt Templates"
             style={{ paddingLeft: 20 }}
           >
-            <EuiText>test</EuiText>
+            <div onDragStart={(event) => onDragStart(event, 'prompt', 'Chat')} draggable>
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: PROMPT_COLOR }}
+              >
+                <EuiText>Chat</EuiText>
+              </EuiPanel>
+            </div>
+            <EuiSpacer size="m" />
+            <div onDragStart={(event) => onDragStart(event, 'prompt', 'Few-shot')} draggable>
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: PROMPT_COLOR }}
+              >
+                <EuiText>Few-shot</EuiText>
+              </EuiPanel>
+            </div>
+            <EuiSpacer size="m" />
+            <div onDragStart={(event) => onDragStart(event, 'prompt', 'Summarization')} draggable>
+              <EuiPanel
+                hasShadow={true}
+                hasBorder={true}
+                paddingSize="s"
+                style={{ backgroundColor: PROMPT_COLOR }}
+              >
+                <EuiText>Summarization</EuiText>
+              </EuiPanel>
+            </div>
+          </EuiAccordion>
+          <EuiSpacer size="m" />
+          <EuiAccordion
+            id="agentsAccordion"
+            paddingSize="l"
+            buttonContent="Agents"
+            style={{ paddingLeft: 20 }}
+          >
+            <EuiSpacer size="m" />
+            <div onDragStart={(event) => onDragStart(event, 'agent', 'Agent 1')} draggable>
+              <EuiPanel hasShadow={true} hasBorder={true} paddingSize="s">
+                <EuiText>Agent 1</EuiText>
+              </EuiPanel>
+            </div>
+          </EuiAccordion>
+          <EuiSpacer size="m" />
+          <EuiAccordion
+            id="toolsAccordion"
+            paddingSize="l"
+            buttonContent="Tools"
+            style={{ paddingLeft: 20 }}
+          >
+            <EuiSpacer size="m" />
+            <div onDragStart={(event) => onDragStart(event, 'tool', 'Tool 1')} draggable>
+              <EuiPanel hasShadow={true} hasBorder={true} paddingSize="s">
+                <EuiText>Tool 1</EuiText>
+              </EuiPanel>
+            </div>
           </EuiAccordion>
           <EuiSpacer size="m" />
           <EuiAccordion
             id="queryAccordion"
             paddingSize="l"
-            buttonContent="Query"
+            buttonContent="Query pipelines"
             style={{ paddingLeft: 20 }}
           >
-            <EuiText>test</EuiText>
+            <EuiSpacer size="m" />
+            <div
+              onDragStart={(event) => onDragStart(event, 'query-pipeline', 'Query Pipeline 1')}
+              draggable
+            >
+              <EuiPanel hasShadow={true} hasBorder={true} paddingSize="s">
+                <EuiText>Query Pipeline 1</EuiText>
+              </EuiPanel>
+            </div>
           </EuiAccordion>
           <EuiSpacer size="m" />
           <EuiAccordion
             id="ingestAccordion"
             paddingSize="l"
-            buttonContent="Ingest"
+            buttonContent="Ingest pipelines"
             style={{ paddingLeft: 20 }}
           >
-            <EuiText>test</EuiText>
+            <EuiSpacer size="m" />
+            <div
+              onDragStart={(event) => onDragStart(event, 'ingest-pipeline', 'Ingest Pipeline 1')}
+              draggable
+            >
+              <EuiPanel hasShadow={true} hasBorder={true} paddingSize="s">
+                <EuiText>Ingest Pipeline 1</EuiText>
+              </EuiPanel>
+            </div>
           </EuiAccordion>
         </EuiFlexItem>
       </EuiFlexGroup>

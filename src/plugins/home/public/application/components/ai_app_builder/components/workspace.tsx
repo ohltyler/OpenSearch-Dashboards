@@ -7,7 +7,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import ReactFlow, { Controls, Background, useNodesState, useEdgesState, addEdge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './dnd-styles.scss';
-import { EuiFlexGroup, EuiFlexItem, EuiTitle } from '@elastic/eui';
+import { EuiButton, EuiFlexGroup, EuiFlexItem, EuiTitle } from '@elastic/eui';
 import { DEFAULT_COLOR, EMBEDDINGS_COLOR, MODEL_COLOR, PROMPT_COLOR } from '../constants';
 
 const initialNodes = [
@@ -41,7 +41,7 @@ const initialNodes = [
   {
     id: '4',
     position: { x: 300, y: 400 },
-    data: { label: 'GPT-4 (generate output)' },
+    data: { label: 'GPT-4 (generate output from ranked results)' },
     type: 'model',
     style: {
       background: MODEL_COLOR,
@@ -127,7 +127,12 @@ export function Workspace() {
 
   return (
     <EuiFlexItem grow={true}>
-      <EuiFlexGroup direction="column" gutterSize="m" ref={workspaceRef}>
+      <EuiFlexGroup
+        direction="column"
+        gutterSize="m"
+        justifyContent="spaceBetween"
+        ref={workspaceRef}
+      >
         <EuiFlexItem grow={true} style={{ maxHeight: 50 }}>
           <EuiTitle size="m">
             <h3>Workspace</h3>
@@ -148,6 +153,9 @@ export function Workspace() {
             <Controls />
             <Background />
           </ReactFlow>
+        </EuiFlexItem>
+        <EuiFlexItem style={{ height: 50, marginBottom: 0 }} grow={false}>
+          <EuiButton fill={true}>Test it! &#128640;</EuiButton>
         </EuiFlexItem>
       </EuiFlexGroup>
     </EuiFlexItem>

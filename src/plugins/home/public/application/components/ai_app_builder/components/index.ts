@@ -5,3 +5,4 @@
 
 export { Workspace } from './workspace';
 export { Catalog } from './catalog';
+export { TestApp } from './test_app';

@@ -28,14 +28,14 @@ export function Catalog() {
       <EuiFlexGroup direction="column" gutterSize="m">
         <EuiFlexItem grow={true} style={{ maxHeight: 50 }}>
           <EuiTitle size="m">
-            <h3>Component catalog</h3>
+            <h3>Component Catalog</h3>
           </EuiTitle>
         </EuiFlexItem>
         <EuiFlexItem style={{ borderStyle: 'groove', borderColor: 'gray', borderWidth: '1px' }}>
           <EuiAccordion
             id="modelsAccordion"
             paddingSize="l"
-            buttonContent="LLMs"
+            buttonContent="LLMs &#129504;"
             style={{
               paddingTop: '25px',
               paddingLeft: '20px',
